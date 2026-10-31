@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BeListen - Single Answer Edition</title>
+    <title>BeListen - Normal Text Answer</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
@@ -123,7 +123,8 @@
                         <h3 class="text-xs font-bold uppercase tracking-wider" style="color: #047857;">ĐÁP ÁN TRANSCRIPT CHUẨN (TỪ GOOGLE SHEET):</h3>
                         <span class="text-[10px] bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full font-bold">📊 Chấm tự động</span>
                     </div>
-                    <div id="diffOutput" class="text-sm leading-relaxed font-mono p-3 rounded-xl border border-emerald-100" style="background-color: #ecfdf5;"></div>
+                    <!-- Hiển thị văn bản bình thường, sạch sẽ -->
+                    <div id="diffOutput" class="text-sm font-medium p-3 rounded-xl border border-emerald-100 text-emerald-950" style="background-color: #ecfdf5;"></div>
                     <div id="scoreText" class="text-xs font-bold mt-1 text-emerald-700"></div>
                 </div>
 
@@ -141,7 +142,7 @@
 
     <!-- Footer -->
     <footer class="text-center py-4 text-xs text-emerald-600/70 font-medium">
-        BeListen App • Single Answer Edition ✨
+        BeListen App • Normal Text Answer ✨
     </footer>
 
     <!-- YouTube IFrame API -->
@@ -350,7 +351,7 @@
         async function translateText(text) {
             try {
                 const res = await fetch(`https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=vi&dt=t&q=${encodeURIComponent(text)}`);
-                const data = await res.json();
+                    const data = await res.json();
                 return data[0][0][0];
             } catch (e) {
                 return "Bản dịch tiếng Việt tự động.";
@@ -385,36 +386,23 @@
             const originalWords = targetClean.split(' ').filter(w => w.length > 0);
             const userWords = userClean.split(' ').filter(w => w.length > 0);
 
-            let html = "";
             let matchCount = 0;
-
             originalWords.forEach((word, i) => {
                 if (userWords[i] === word) {
-                    html += `<span class="correct">${userWords[i] || word}</span> `;
                     matchCount++;
-                } else if (userWords[i]) {
-                    html += `<span class="incorrect">${userWords[i]}</span> <span class="correct">(${word})</span> `;
-                } else {
-                    html += `<span class="text-emerald-300">(${word})</span> `;
                 }
             });
 
-            for (let i = originalWords.length; i < userWords.length; i++) {
-                html += `<span class="incorrect">${userWords[i]}</span> `;
-            }
-
-            diffOutput.innerHTML = html || "<span class='text-slate-400'>Chưa có dữ liệu</span>";
             let accuracy = originalWords.length > 0 ? Math.round((matchCount / originalWords.length) * 100) : 0;
+            
+            // Hiển thị câu chuẩn một cách bình thường, rõ ràng
+            diffOutput.innerText = currentRawSegment;
             scoreText.innerText = `Độ chính xác: ${accuracy}% (Từ đúng: ${matchCount}/${originalWords.length})`;
 
-            // HIỂN THỊ ĐÚNG DUY NHẤT CÂU HIỆN TẠI (CHẤM LỖI TỪNG TỪ SO VỚI CÂU NÀY)
-            // Phần so sánh chi tiết (`diffOutput`) đã hiển thị sẵn kết quả check lỗi ở trên. 
-            // Dòng dưới đây hiển thị câu đáp án chuẩn thuần túy để bạn dễ nhìn:
-            document.getElementById('translateOutput').innerText = "Đang dịch tự động câu hiện tại...";
+            container.classList.remove('hidden');
+            translateOutput.innerText = "Đang dịch tự động câu hiện tại...";
             let translated = await translateText(currentRawSegment);
             translateOutput.innerText = translated;
-
-            container.classList.remove('hidden');
 
             if (isSubmitting) {
                 if (accuracy === 100) {
