@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BeListen - Harry Potter Edition</title>
+    <title>BeListen - Harry Potter Sorting Ceremony</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
@@ -200,9 +200,9 @@
                     </button>
                 `;
             } else if (topicName === 'Harry Potter') {
-                header.innerText = "Danh sách Video - Harry Potter:";
+                header.innerText = "Nón phân loại - Harry Potter 1";
                 container.innerHTML = `
-                    <button onclick="startPractice('Nón phân loại - Harry Potter 1', 'J9MKjQ6-UBU', 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQTB4HbLMtGm5lxt1CacI1wXGaAyEyhosNtoYJ7KxT6i3E4AYSqWEkZ7SkcMUtprZC1gEyYxS1GYP3j/pub?gid=0&single=true&output=csv')" class="bg-white p-3.5 rounded-xl border border-emerald-100 flex items-center justify-between text-left hover:border-emerald-400 hover:bg-emerald-50/30 transition shadow-xs w-full">
+                    <button onclick="startPractice('Nón phân loại - Harry Potter 1', 'z4K2F_OALPQ', 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQTB4HbLMtGm5lxt1CacI1wXGaAyEyhosNtoYJ7KxT6i3E4AYSqWEkZ7SkcMUtprZC1gEyYxS1GYP3j/pub?gid=0&single=true&output=csv')" class="bg-white p-3.5 rounded-xl border border-emerald-100 flex items-center justify-between text-left hover:border-emerald-400 hover:bg-emerald-50/30 transition shadow-xs w-full">
                         <div class="flex items-center gap-3">
                             <span class="w-6 h-6 rounded-full bg-amber-100 text-amber-800 text-xs font-bold flex items-center justify-center">1</span>
                             <span class="text-xs font-bold text-emerald-950">Nón phân loại - Harry Potter 1</span>
@@ -254,7 +254,6 @@
                     let text = match[3].replace(/^["']|["']$/g, '').trim();
 
                     if (text.length > 0) {
-                        // Kiểm tra nếu câu thoại là "***" (khoảng lặng / nghỉ)
                         let isSilent = text === "***";
                         transcriptSegments.push({
                             startTime: startTime,
@@ -277,7 +276,6 @@
         function updateSegmentUI() {
             let seg = transcriptSegments[currentSegmentIndex];
             
-            // Nếu là đoạn *** (không có lời thoại) -> Tự động bỏ qua việc yêu cầu trả lời
             if (seg && seg.isSilent) {
                 document.getElementById('statusNotice').innerText = "🎵 Đoạn nhạc/khoảng lặng - Đang phát tự động qua câu tiếp theo...";
                 document.getElementById('userInput').value = "";
@@ -288,220 +286,9 @@
                     segmentEnd = seg.endTime;
                     player.seekTo(segmentStart, true);
                     player.playVideo();
-                    isLooping = false; // Không lặp lại đoạn ***
-                }
-                return;
-            }
-
-            document.getElementById('currentSegmentIdx').innerText = currentSegmentIndex + 1;
-            document.getElementById('totalSegmentsIdx').innerText = transcriptSegments.length;
-            document.getElementById('userInput').value = "";
-            document.getElementById('resultContainer').classList.add('hidden');
-            document.getElementById('statusNotice').innerText = "💡 Đang lặp đúng mốc thời gian: Gõ đúng 100% để qua câu tiếp theo!";
-
-            if (player && typeof player.seekTo === 'function' && seg) {
-                segmentStart = seg.startTime;
-                segmentEnd = seg.endTime;
-                player.seekTo(segmentStart, true);
-                player.playVideo();
-                isLooping = true;
-                const btn = document.getElementById('loopBtn');
-                btn.innerText = "🛑 Tắt Lặp Câu (Đang Bật)";
-                btn.style.backgroundColor = "#047857";
-            }
-        }
-
-        function loadYouTubePlayer(videoId) {
-            if (!player) {
-                player = new YT.Player('player', {
-                    videoId: videoId,
-                    playerVars: { 'playsinline': 1 },
-                    events: {
-                        'onReady': () => { 
-                            startLoopTracker(); 
-                            if (transcriptSegments.length > 0) {
-                                segmentStart = transcriptSegments[0].startTime;
-                                segmentEnd = transcriptSegments[0].endTime;
-                                player.seekTo(segmentStart, true);
-                            }
-                        }
-                    }
-                });
-            } else {
-                if (typeof player.loadVideoById === 'function') {
-                    player.loadVideoById(videoId);
-                }
-            }
-            isLooping = true;
-        }
-
-        function toggleLoopSegment() {
-            isLooping = !isLooping;
-            const btn = document.getElementById('loopBtn');
-            const notice = document.getElementById('statusNotice');
-            if (isLooping) {
-                btn.innerText = "🛑 Tắt Lặp Câu (Đang Bật)";
-                btn.style.backgroundColor = "#047857";
-                notice.innerText = "💡 Đang khóa lặp mốc thời gian câu hiện tại!";
-                let seg = transcriptSegments[currentSegmentIndex];
-                if (seg) {
-                    segmentStart = seg.startTime;
-                    segmentEnd = seg.endTime;
-                }
-                if (player && typeof player.getCurrentTime === 'function') {
-                    player.seekTo(segmentStart, true);
-                }
-            } else {
-                btn.innerText = "🔁 Bật Lặp Câu (Auto)";
-                btn.style.backgroundColor = "#059669";
-                notice.innerText = "⚠️ Đã tắt lặp tự động.";
-            }
-        }
-
-        function nextSegment() {
-            if (currentSegmentIndex < transcriptSegments.length - 1) {
-                currentSegmentIndex++;
-            } else {
-                currentSegmentIndex = 0;
-            }
-            updateSegmentUI();
-        }
-
-        // Trình theo dõi video: Xử lý chạy qua đoạn *** không lặp
-        function startLoopTracker() {
-            setInterval(() => {
-                if (player && typeof player.getPlayerState === 'function' && player.getPlayerState() === YT.PlayerState.PLAYING) {
-                    let currentTime = player.getCurrentTime();
-                    let seg = transcriptSegments[currentSegmentIndex];
-                    if (seg) {
-                        segmentStart = seg.startTime;
-                        segmentEnd = seg.endTime;
-                        
-                        // Nếu là đoạn *** -> Chạy hết thời gian thì tự động nhảy sang câu tiếp theo
-                        if (seg.isSilent) {
-                            if (currentTime >= segmentEnd) {
-                                nextSegment();
-                            }
-                            return;
-                        }
-                    }
-                    
-                    // Với câu thường -> Lặp lại nếu đang bật chế độ Loop
-                    if (isLooping && segmentEnd > segmentStart && currentTime >= segmentEnd) {
-                        player.seekTo(segmentStart, true);
-                    }
-                }
-            }, 300);
-        }
-
-        function handleTextareaKey(event) {
-            if (event.code === 'Enter' || event.key === 'Enter') {
-                event.preventDefault();
-                checkResult();
-            }
-        }
-
-        function cleanText(text) {
-            return text
-                .toLowerCase()
-                .replace(/[-•]/g, "")
-                .replace(/[.,/#!$%^&*;:{}=\-_`~()?"']/g, "")
-                .replace(/\s+/g, " ")
-                .trim();
-        }
-
-        async function translateSegmentText(text) {
-            try {
-                const res = await fetch(`https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=vi&dt=t&q=${encodeURIComponent(text)}`);
-                const data = await res.json();
-                let translatedString = "";
-                if (data && data[0]) {
-                    data[0].forEach(item => {
-                        if (item[0]) translatedString += item[0];
-                    });
-                }
-                return translatedString || "Đang dịch tự động...";
-            } catch (e) {
-                return "Bản dịch tiếng Việt tự động.";
-            }
-        }
-
-        function toggleAnswerVisibility() {
-            const container = document.getElementById('resultContainer');
-            if (container.classList.contains('hidden')) {
-                showResults(false);
-            } else {
-                container.classList.add('hidden');
-            }
-        }
-
-        async function checkResult() {
-            await showResults(true);
-        }
-
-        async function showResults(isSubmitting) {
-            const container = document.getElementById('resultContainer');
-            const diffOutput = document.getElementById('diffOutput');
-            const scoreText = document.getElementById('scoreText');
-            const translateOutput = document.getElementById('translateOutput');
-            const notice = document.getElementById('statusNotice');
-
-            let seg = transcriptSegments[currentSegmentIndex] || { text: "" };
-            let currentRawSegment = seg.text;
-
-            // Nếu bấm xem đáp án ở câu ***
-            if (seg.isSilent) {
-                diffOutput.innerText = "(Đoạn chuyển cảnh / Không thoại)";
-                scoreText.innerText = "";
-                translateOutput.innerText = "(Khoảng lặng)";
-                container.classList.remove('hidden');
-                return;
-            }
-
-            let targetClean = cleanText(currentRawSegment);
-            let userClean = cleanText(document.getElementById('userInput').value);
-
-            const originalWords = targetClean.split(' ').filter(w => w.length > 0);
-            const userWords = userClean.split(' ').filter(w => w.length > 0);
-
-            let matchCount = 0;
-            originalWords.forEach((word, i) => {
-                if (userWords[i] === word) {
-                    matchCount++;
-                }
-            });
-
-            let accuracy = originalWords.length > 0 ? Math.round((matchCount / originalWords.length) * 100) : 0;
-            
-            diffOutput.innerText = currentRawSegment;
-            scoreText.innerText = `Độ chính xác: ${accuracy}% (Từ đúng: ${matchCount}/${originalWords.length})`;
-
-            container.classList.remove('hidden');
-            translateOutput.innerText = "Đang dịch tự động câu hiện tại...";
-            
-            let translated = await translateSegmentText(currentRawSegment);
-            translateOutput.innerText = translated;
-
-            if (isSubmitting) {
-                if (accuracy === 100) {
                     isLooping = false;
-                    const btn = document.getElementById('loopBtn');
-                    btn.innerText = "🔁 Bật Lặp Câu (Auto)";
-                    btn.style.backgroundColor = "#059669";
-                    notice.innerHTML = "✅ <span class='text-emerald-700 font-bold'>Chính xác 100%!</span> Đã mở khóa. Bấm <span class='text-emerald-600 font-bold'>[⏭ Câu tiếp]</span> hoặc bấm Enter để sang đoạn tiếp theo!";
-                    
-                    setTimeout(() => {
-                        if (currentView === 3) nextSegment();
-                    }, 800);
-                } else {
-                    isLooping = true;
-                    const btn = document.getElementById('loopBtn');
-                    btn.innerText = "🛑 Tắt Lặp Câu (Đang Bật)";
-                    btn.style.backgroundColor = "#047857";
-                    notice.innerHTML = "❌ <span class='text-red-600 font-bold'>Chưa chính xác (" + accuracy + "%).</span> Vẫn tiếp tục lặp lại mốc thời gian này!";
                 }
+                return;
             }
-        }
-    </script>
-</body>
-</html>
+
+            document
