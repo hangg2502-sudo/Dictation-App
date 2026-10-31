@@ -48,8 +48,8 @@
         <div id="viewTopics" class="flex flex-col gap-3">
             <h2 class="text-xs font-bold uppercase tracking-wider text-emerald-800 mb-1">Chủ đề bài học:</h2>
             
-            <!-- Thẻ Chủ đề Zootopia -->
-            <button onclick="openTopic('Zootopia', '1zMgSaxxOSPLvY-Bh9597_2f_CTL3ddnVEbcho7mgFQY')" class="bg-white p-4 rounded-2xl shadow-xs border border-emerald-100 flex items-center justify-between hover:border-emerald-400 hover:shadow-sm transition text-left group">
+            <!-- Thẻ Chủ đề Zootopia liên kết trực tiếp tới Google Sheet của bạn -->
+            <button onclick="openTopic('Zootopia', 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQU9tUvOG7EkQzPg5kmFttgYc8v4PoHY_ly0BWxnNpCrRbP4A_CLaK21UTbRYTwVVVbhuqNsALLfQUA/pub?output=csv')" class="bg-white p-4 rounded-2xl shadow-xs border border-emerald-100 flex items-center justify-between hover:border-emerald-400 hover:shadow-sm transition text-left group">
                 <div class="flex items-center gap-3">
                     <div class="w-10 h-10 rounded-xl bg-emerald-100 flex items-center justify-center text-emerald-700 font-extrabold text-lg">
                         🦊
@@ -61,8 +61,6 @@
                 </div>
                 <span class="text-emerald-400 font-bold text-sm">▶</span>
             </button>
-
-            <!-- Bạn có thể thêm chủ đề mới tại đây bằng cách nhân bản nút bấm trên -->
         </div>
 
         <!-- ================= TRANG 2: DANH SÁCH VIDEO TRONG CHỦ ĐỀ ================= -->
@@ -72,7 +70,7 @@
                 ⏳ Đang tải danh sách video từ Google Sheets...
             </div>
             <div id="videoListContainer" class="flex flex-col gap-2.5">
-                <!-- Danh sách video lấy từ Cột B sẽ đổ vào đây -->
+                <!-- Danh sách video từ Cột B sẽ tự động hiển thị tại đây -->
             </div>
         </div>
 
@@ -108,7 +106,7 @@
                     <button onclick="toggleAnswerVisibility()" class="text-xs text-emerald-600 font-bold hover:underline">Xem đáp án & Dịch</button>
                 </div>
                 
-                <textarea id="userInput" rows="3" class="w-full p-3 border border-emerald-200 rounded-xl text-sm bg-emerald-50/20 focus:outline-none focus:border-emerald-500 resize-none text-emerald-950" placeholder="Nhập câu tiếng Anh nghe được vào đây (không cần gõ dấu câu hay gạch đầu dòng)..."></textarea>
+                <textarea id="userInput" rows="3" class="w-full p-3 border border-emerald-200 rounded-xl text-sm bg-emerald-50/20 focus:outline-none focus:border-emerald-500 resize-none text-emerald-950" placeholder="Nhập câu tiếng Anh nghe được vào đây..."></textarea>
                 
                 <button onclick="checkResult()" class="mt-3 text-white py-2.5 rounded-xl text-sm font-extrabold shadow-md hover:bg-emerald-700 transition" style="background-color: #059669;">
                     Done (Kiểm Tra & Nộp bài) ✓
@@ -146,7 +144,7 @@
     <!-- YouTube IFrame API -->
     <script src="https://www.youtube.com/iframe_api"></script>
     <script>
-        let currentView = 1; // 1: Topics, 2: Videos, 3: Practice
+        let currentView = 1;
         let currentSheetData = [];
         let activeVideoData = null;
         let transcriptSegments = [];
@@ -157,11 +155,8 @@
         let segmentDuration = 7;
         let segmentStart = 0;
 
-        function onYouTubeIframeAPIReady() {
-            // Player ready callback
-        }
+        function onYouTubeIframeAPIReady() {}
 
-        // Quản lý điều hướng màn hình
         function setView(viewNum) {
             currentView = viewNum;
             document.getElementById('viewTopics').classList.toggle('hidden', viewNum !== 1);
@@ -180,25 +175,21 @@
             else if (currentView === 2) setView(1);
         }
 
-        // Mở chủ đề & đọc dữ liệu CSV từ Google Sheet
-        async function openTopic(topicName, sheetId) {
+        async function openTopic(topicName, csvUrl) {
             setView(2);
             document.getElementById('topicTitleHeader').innerText = `Danh sách Video - ${topicName}:`;
             document.getElementById('loadingNotice').classList.remove('hidden');
             document.getElementById('videoListContainer').innerHTML = "";
-
-            const csvUrl = `https://docs.google.com/spreadsheets/d/${sheetId}/export?format=csv`;
 
             try {
                 const res = await fetch(csvUrl);
                 const csvText = await res.text();
                 parseSheetCSV(csvText);
             } catch (e) {
-                document.getElementById('loadingNotice').innerText = "⚠️ Không thể tải dữ liệu từ Google Sheet. Hãy kiểm tra lại chế độ Xuất bản lên web!";
+                document.getElementById('loadingNotice').innerText = "⚠️ Không thể tải dữ liệu từ Google Sheet. Hãy kiểm tra lại chế độ xuất bản!";
             }
         }
 
-        // Phân tích file CSV (Cột A: Video_ID, Cột B: Title, Cột C: Transcript)
         function parseSheetCSV(csvText) {
             const lines = csvText.split('\n');
             currentSheetData = [];
@@ -206,7 +197,6 @@
             for (let i = 1; i < lines.length; i++) {
                 if (!lines[i].trim()) continue;
                 
-                // Tách cột CSV đơn giản
                 const cols = lines[i].split(/,(?=(?:[^\"]*\"[^\"]*\")*[^\"]*$)/);
                 if (cols.length >= 3) {
                     let videoId = cols[0].replace(/"/g, '').trim();
@@ -222,7 +212,6 @@
             renderVideoList();
         }
 
-        // Hiển thị danh sách các Video thuộc cột B lên Trang 2
         function renderVideoList() {
             const container = document.getElementById('videoListContainer');
             const loadingNotice = document.getElementById('loadingNotice');
@@ -230,7 +219,7 @@
             container.innerHTML = "";
 
             if (currentSheetData.length === 0) {
-                container.innerHTML = `<div class="text-center py-4 text-xs text-emerald-600">Chưa có bài học nào trong trang tính này.</div>`;
+                container.innerHTML = `<div class="text-center py-4 text-xs text-emerald-600">Chưa có bài học nào trong Google Sheet này.</div>`;
                 return;
             }
 
@@ -249,14 +238,12 @@
             });
         }
 
-        // Bắt đầu màn hình luyện tập với Video được chọn
         function startPractice(videoItem) {
             activeVideoData = videoItem;
             setView(3);
 
             document.getElementById('currentLessonTitle').innerText = videoItem.title;
             
-            // Xử lý tách các câu lặp theo gạch đầu dòng (-) hoặc xuống dòng trong Cột C
             parseTranscriptSegments(videoItem.rawTranscript);
             currentSegmentIndex = 0;
 
@@ -264,9 +251,7 @@
             updateSegmentUI();
         }
 
-        // Tách câu lặp bằng ký tự gạch đầu dòng (-) hoặc xuống dòng
         function parseTranscriptSegments(rawText) {
-            // Tách theo dấu gạch đầu dòng -, • hoặc xuống dòng \n
             const lines = rawText.split(/[-•\n]+/);
             transcriptSegments = lines
                 .map(line => line.trim())
@@ -321,7 +306,7 @@
             if (currentSegmentIndex < transcriptSegments.length - 1) {
                 currentSegmentIndex++;
             } else {
-                currentSegmentIndex = 0; // Quay lại câu 1 nếu hết bài
+                currentSegmentIndex = 0;
             }
             
             updateSegmentUI();
@@ -348,13 +333,12 @@
             }, 400);
         }
 
-        // Hàm chuẩn hóa chuỗi: Chuyển về chữ thường, xóa hoàn toàn dấu câu & gạch đầu dòng
         function cleanText(text) {
             return text
                 .toLowerCase()
-                .replace(/[-•]/g, "") // Bỏ dấu gạch đầu dòng
-                .replace(/[.,/#!$%^&*;:{}=\-_`~()?"']/g, "") // Bỏ toàn bộ dấu câu
-                .replace(/\s+/g, " ") // Chuẩn hóa khoảng trắng
+                .replace(/[-•]/g, "")
+                .replace(/[.,/#!$%^&*;:{}=\-_`~()?"']/g, "")
+                .replace(/\s+/g, " ")
                 .trim();
         }
 
