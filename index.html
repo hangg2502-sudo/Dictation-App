@@ -48,7 +48,6 @@
         <div id="viewTopics" class="flex flex-col gap-3">
             <h2 class="text-xs font-bold uppercase tracking-wider text-emerald-800 mb-1">Chủ đề bài học:</h2>
             
-            <!-- Chủ đề Zootopia liên kết tới file Sheet của bạn -->
             <button onclick="openTopic('Zootopia', 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQU9tUvOG7EkQzPg5kmFttgYc8v4PoHY_ly0BWxnNpCrRbP4A_CLaK21UTbRYTwVVVbhuqNsALLfQUA/pub?output=csv')" class="bg-white p-4 rounded-2xl shadow-xs border border-emerald-100 flex items-center justify-between hover:border-emerald-400 hover:shadow-sm transition text-left group">
                 <div class="flex items-center gap-3">
                     <div class="w-10 h-10 rounded-xl bg-emerald-100 flex items-center justify-center text-emerald-700 font-extrabold text-lg">
@@ -67,10 +66,10 @@
         <div id="viewVideos" class="hidden flex flex-col gap-3">
             <h2 id="topicTitleHeader" class="text-xs font-bold uppercase tracking-wider text-emerald-800 mb-1">Danh sách Video:</h2>
             <div id="loadingNotice" class="text-center py-8 text-xs font-semibold text-emerald-600">
-                ⏳ Đang tổng hợp dữ liệu từ 3 sheet (Tiêu đề, Link, Transcript)...
+                ⏳ Đang tải danh sách bài học...
             </div>
             <div id="videoListContainer" class="flex flex-col gap-2.5">
-                <!-- Danh sách tên video lấy từ sheet Tiêu đề sẽ hiển thị tại đây -->
+                <!-- Danh sách tiêu đề bài học hiển thị tại đây -->
             </div>
         </div>
 
@@ -94,7 +93,7 @@
                         ⏭ Câu tiếp
                     </button>
                 </div>
-                <div id="statusNotice" class="text-center text-[11px] font-semibold text-emerald-700">💡 Đang lặp đoạn hiện tại: Gõ đúng 100% để qua câu tiếp theo!</div>
+                <div id="statusNotice" class="text-center text-[11px] font-semibold text-emerald-700">💡 Gõ đúng 100% để qua câu tiếp theo (hoặc bấm Space để nộp bài nhanh)!</div>
             </div>
 
             <!-- Khung Nhập Liệu -->
@@ -106,10 +105,11 @@
                     <button onclick="toggleAnswerVisibility()" class="text-xs text-emerald-600 font-bold hover:underline">Xem đáp án & Dịch</button>
                 </div>
                 
-                <textarea id="userInput" rows="3" class="w-full p-3 border border-emerald-200 rounded-xl text-sm bg-emerald-50/20 focus:outline-none focus:border-emerald-500 resize-none text-emerald-950" placeholder="Nhập câu tiếng Anh nghe được vào đây..."></textarea>
+                <!-- Bổ sung sự kiện lắng nghe phím Space -->
+                <textarea id="userInput" rows="3" onkeydown="handleKeyNavigation(event)" class="w-full p-3 border border-emerald-200 rounded-xl text-sm bg-emerald-50/20 focus:outline-none focus:border-emerald-500 resize-none text-emerald-950" placeholder="Nhập câu tiếng Anh nghe được vào đây (bấm Space để Done)..."></textarea>
                 
                 <button onclick="checkResult()" class="mt-3 text-white py-2.5 rounded-xl text-sm font-extrabold shadow-md hover:bg-emerald-700 transition" style="background-color: #059669;">
-                    Done (Kiểm Tra & Nộp bài) ✓
+                    Done (Kiểm Tra & Nộp bài) ✓ [Phím Space]
                 </button>
             </div>
 
@@ -175,34 +175,21 @@
             else if (currentView === 2) setView(1);
         }
 
-        // Lấy dữ liệu từ cả 3 sheet thông qua URL gốc
-        async function openTopic(topicName, baseUrl) {
+        async function openTopic(topicName, csvUrl) {
             setView(2);
-            document.getElementById('topicTitleHeader', topicName).innerText = `Danh sách Video - ${topicName}:`;
+            document.getElementById('topicTitleHeader').innerText = `Danh sách Video - ${topicName}:`;
             document.getElementById('loadingNotice').classList.remove('hidden');
             document.getElementById('videoListContainer').innerHTML = "";
 
             try {
-                // Tách phần base url và thay đổi gid tương ứng cho 3 sheet: Tiêu đề, Link Youtube, Transcript
-                // Google Sheets xuất bản từng sheet riêng bằng tham số gid.
-                let baseClean = baseUrl.split('&gid=')[0].split('?gid=')[0];
-                
-                // Giả định thứ tự gid các sheet được xuất bản hoặc dùng chung cấu trúc đơn giản.
-                // Ở đây ta fetch đồng thời 3 sheet bằng cách thêm gid tương ứng (hoặc fetch toàn bộ CSV gom nhóm).
-                // Cách tối ưu nhất khi chia 3 sheet trong cùng 1 file Google Sheet:
-                const res = await fetch(baseUrl);
-                const fullText = await res.text();
-                
-                // Nếu xuất bản cả tài liệu, Google Sheet trả về file ZIP hoặc gộp trang. 
-                // Tuy nhiên, để lấy từng sheet riêng biệt chuẩn xác nhất qua CSV, ta gọi trực tiếp các đường link gid tương ứng.
-                // Tạm thời app sẽ phân tích cú pháp cột từ dữ liệu tổng hợp hoặc kết hợp 3 nguồn.
-                parseMultiSheetData(fullText);
+                const res = await fetch(csvUrl);
+                const csvText = await res.text();
+                parseMultiSheetData(csvText);
             } catch (e) {
-                document.getElementById('loadingNotice').innerText = "⚠️ Không thể tải dữ liệu từ Google Sheet. Hãy kiểm tra lại quyền xuất bản!";
+                document.getElementById('loadingNotice').innerText = "⚠️ Không thể tải dữ liệu từ Google Sheet. Hãy kiểm tra lại chế độ xuất bản!";
             }
         }
 
-        // Trích xuất và ghép nối 3 nguồn dữ liệu theo đúng yêu cầu
         function parseMultiSheetData(csvText) {
             const lines = csvText.split('\n');
             lessonsData = [];
@@ -212,9 +199,9 @@
                 
                 let row = parseCSVLine(lines[i]);
                 if (row.length >= 3) {
-                    let title = row[0].replace(/^["']|["']$/g, '').trim();       // Sheet Tiêu đề
-                    let rawUrl = row[1].replace(/^["']|["']$/g, '').trim();      // Sheet Link Youtube
-                    let rawTranscript = row[2].replace(/^["']|["']$/g, '').trim();// Sheet Transcript
+                    let title = row[0].replace(/^["']|["']$/g, '').trim();       // Cột Tiêu đề
+                    let rawUrl = row[1].replace(/^["']|["']$/g, '').trim();      // Cột Link Youtube
+                    let rawTranscript = row[2].replace(/^["']|["']$/g, '').trim();// Cột Transcript
 
                     let videoId = extractYouTubeId(rawUrl);
 
@@ -252,7 +239,7 @@
             } else if (url.includes("watch?v=")) {
                 return url.split("watch?v=")[1].split("&")[0];
             }
-            return url.trim(); // Nếu đã là ID sẵn
+            return url.trim();
         }
 
         function renderVideoList() {
@@ -269,7 +256,7 @@
             lessonsData.forEach((item, index) => {
                 const btn = document.createElement('button');
                 btn.className = "bg-white p-3.5 rounded-xl border border-emerald-100 flex items-center justify-between text-left hover:border-emerald-400 hover:bg-emerald-50/30 transition shadow-xs";
-                // Trang 2 hiển thị tên từ sheet Tiêu đề (Cột B hoặc tương ứng)
+                // Hiển thị tên tiêu đề chuẩn từ sheet Tiêu đề
                 btn.innerHTML = `
                     <div class="flex items-center gap-3">
                         <span class="w-6 h-6 rounded-full bg-emerald-100 text-emerald-800 text-xs font-bold flex items-center justify-center">${index + 1}</span>
@@ -295,6 +282,7 @@
             updateSegmentUI();
         }
 
+        // Ngắt đoạn lặp theo từng gạch đầu dòng (-) hoặc xuống dòng
         function parseTranscriptSegments(rawText) {
             const lines = rawText.split(/[-•\n]+/);
             transcriptSegments = lines
@@ -350,7 +338,7 @@
             if (currentSegmentIndex < transcriptSegments.length - 1) {
                 currentSegmentIndex++;
             } else {
-                currentSegmentIndex = 0;
+                currentSegmentIndex = 0; // Vòng lại câu đầu nếu hết bài
             }
             
             updateSegmentUI();
@@ -375,6 +363,14 @@
                     }
                 }
             }, 400);
+        }
+
+        // Lắng nghe phím Space để bấm Done nhanh
+        function handleKeyNavigation(event) {
+            if (event.code === 'Space') {
+                event.preventDefault(); // Ngăn ô textarea tự động nhảy dấu cách thừa nếu muốn, hoặc cho phép gõ bình thường. Tốt nhất là chặn mặc định khi submit để gọi checkResult ngay.
+                checkResult();
+            }
         }
 
         function cleanText(text) {
