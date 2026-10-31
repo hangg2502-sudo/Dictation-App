@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BeListen - Fixed Loop Edition</title>
+    <title>BeListen - Locked Video Edition</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
@@ -24,6 +24,17 @@
             left: 0;
             width: 100%;
             height: 100%;
+        }
+        /* Lớp phủ khóa tương tác trực tiếp trên video (chặn bấm tua, chặn mở YouTube) */
+        .video-lock-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 5;
+            pointer-events: auto;
+            background: transparent;
         }
     </style>
 </head>
@@ -93,8 +104,10 @@
             <div class="bg-white p-4 rounded-2xl shadow-xs border border-emerald-100 flex flex-col gap-3">
                 <h3 id="currentLessonTitle" class="text-xs font-bold text-emerald-800 truncate">Tên Video</h3>
                 
-                <div class="video-container bg-emerald-950 shadow-inner">
+                <div class="video-container bg-emerald-950 shadow-inner relative">
                     <div id="player"></div>
+                    <!-- Lớp phủ vô hiệu hóa click/tua trực tiếp trên video -->
+                    <div class="video-lock-overlay"></div>
                 </div>
 
                 <!-- Điều khiển lặp câu -->
@@ -313,7 +326,14 @@
             if (!player) {
                 player = new YT.Player('player', {
                     videoId: videoId,
-                    playerVars: { 'playsinline': 1 },
+                    playerVars: { 
+                        'playsinline': 1,
+                        'controls': 0,          /* Ẩn thanh điều khiển/tua */
+                        'disablekb': 1,         /* Vô hiệu hóa phím tắt bàn phím trên video */
+                        'fs': 0,                /* Ẩn nút phóng to toàn màn hình */
+                        'modestbranding': 1,    /* Ẩn logo YouTube lớn */
+                        'iv_load_policy': 3     /* Ẩn chú thích (annotations) trong video */
+                    },
                     events: {
                         'onReady': () => { 
                             startLoopTracker(); 
@@ -382,12 +402,11 @@
                         }
                     }
                     
-                    // Khắc phục lỗi lặp 1 giây bằng cách kiểm soát chặt mốc kết thúc và thời gian đệm
                     if (isLooping && segmentEnd > segmentStart && currentTime >= segmentEnd) {
                         player.seekTo(segmentStart, true);
                     }
                 }
-            }, 150); // Tăng tần số quét (150ms) để bắt trọn mốc thời gian chính xác hơn
+            }, 150);
         }
 
         function handleTextareaKey(event) {
