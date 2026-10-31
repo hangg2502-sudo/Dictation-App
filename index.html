@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BeListen - Precise Segment Translation</title>
+    <title>BeListen - Custom Edition</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
@@ -97,22 +97,22 @@
                         ⏭ Câu tiếp
                     </button>
                 </div>
-                <div id="statusNotice" class="text-center text-[11px] font-semibold text-emerald-700">💡 Gõ đúng 100% để qua câu tiếp theo (hoặc bấm phím Enter để Done nhanh)!</div>
+                <div id="statusNotice" class="text-center text-[11px] font-semibold text-emerald-700">💡 Gõ đúng 100% để qua câu tiếp theo (hoặc bấm phím Enter để Check nhanh)!</div>
             </div>
 
             <!-- Khung Nhập Liệu -->
             <div class="bg-white p-4 rounded-2xl shadow-xs border border-emerald-100 flex-1 flex flex-col">
                 <div class="flex justify-between items-center mb-2">
                     <label class="text-xs font-bold uppercase tracking-wider text-emerald-800">
-                        Đoạn <span id="currentSegmentIdx">1</span>/<span id="totalSegmentsIdx">1</span> - Gõ những gì bạn nghe được:
+                        Đoạn <span id="currentSegmentIdx">1</span>/<span id="totalSegmentsIdx">1</span> - Viết cả câu vào đêi:
                     </label>
                     <button onclick="toggleAnswerVisibility()" class="text-xs text-emerald-600 font-bold hover:underline">Xem đáp án & Dịch</button>
                 </div>
                 
-                <textarea id="userInput" rows="3" onkeydown="handleTextareaKey(event)" class="w-full p-3 border border-emerald-200 rounded-xl text-sm bg-emerald-50/20 focus:outline-none focus:border-emerald-500 resize-none text-emerald-950" placeholder="Nhập câu tiếng Anh nghe được vào đây (bấm Enter để Done)..."></textarea>
+                <textarea id="userInput" rows="3" onkeydown="handleTextareaKey(event)" class="w-full p-3 border border-emerald-200 rounded-xl text-sm bg-emerald-50/20 focus:outline-none focus:border-emerald-500 resize-none text-emerald-950" placeholder="Nhập câu tiếng Anh nghe được vào đây (bấm Enter để Check)..."></textarea>
                 
                 <button onclick="checkResult()" class="mt-3 text-white py-2.5 rounded-xl text-sm font-extrabold shadow-md hover:bg-emerald-700 transition" style="background-color: #059669;">
-                    Done (Kiểm Tra & Nộp bài) ✓ [Bấm Enter]
+                    Check ✓ [Bấm Enter]
                 </button>
             </div>
 
@@ -120,7 +120,7 @@
             <div id="resultContainer" class="bg-white p-4 rounded-2xl shadow-xs border border-emerald-200 hidden flex flex-col gap-3">
                 <div>
                     <div class="flex justify-between items-center mb-1">
-                        <h3 class="text-xs font-bold uppercase tracking-wider" style="color: #047857;">ĐÁP ÁN TRANSCRIPT CHUẨN (TỪ GOOGLE SHEET):</h3>
+                        <h3 class="text-xs font-bold uppercase tracking-wider" style="color: #047857;">ĐÁP ÁN:</h3>
                         <span class="text-[10px] bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full font-bold">📊 Chấm tự động</span>
                     </div>
                     <div id="diffOutput" class="text-sm font-medium p-3 rounded-xl border border-emerald-100 text-emerald-950" style="background-color: #ecfdf5;"></div>
@@ -128,7 +128,7 @@
                 </div>
 
                 <div class="border-t border-emerald-100 pt-2">
-                    <h3 class="text-xs font-bold uppercase tracking-wider mb-1 text-emerald-600">Dịch nghĩa (Google Translate):</h3>
+                    <h3 class="text-xs font-bold uppercase tracking-wider mb-1 text-emerald-600">Dịch tự động, tham khảo thôi nhớ!</h3>
                     <div id="translateOutput" class="text-xs italic text-emerald-800 p-2.5 rounded-xl bg-emerald-50/50 border border-emerald-100">
                         Đang nạp bản dịch...
                     </div>
@@ -141,7 +141,7 @@
 
     <!-- Footer -->
     <footer class="text-center py-4 text-xs text-emerald-600/70 font-medium">
-        BeListen App • Precise Segment Translation ✨
+        BeListen made by Bel ✨
     </footer>
 
     <!-- YouTube IFrame API -->
@@ -168,7 +168,7 @@
             const subtitle = document.getElementById('headerSubtitle');
             if (viewNum === 1) subtitle.innerText = "Chọn chủ đề học tập bên dưới";
             else if (viewNum === 2) subtitle.innerText = "Chọn video luyện nghe";
-            else if (viewNum === 3) subtitle.innerText = "Luyện nghe chép chính tả";
+            else if (viewNum === 3) subtitle.innerText = "Nghe Nghe Nghe thì mới nghe tốt !!!";
         }
 
         function goBack() {
@@ -347,7 +347,6 @@
                 .trim();
         }
 
-        // Hàm dịch gọi trực tiếp chính xác văn bản của đúng segment hiện tại
         async function translateSegmentText(text) {
             try {
                 const res = await fetch(`https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=vi&dt=t&q=${encodeURIComponent(text)}`);
@@ -384,7 +383,6 @@
             const translateOutput = document.getElementById('translateOutput');
             const notice = document.getElementById('statusNotice');
 
-            // Lấy chính xác câu của segment hiện tại
             let seg = transcriptSegments[currentSegmentIndex] || { text: "" };
             let currentRawSegment = seg.text;
             let targetClean = cleanText(currentRawSegment);
@@ -402,14 +400,12 @@
 
             let accuracy = originalWords.length > 0 ? Math.round((matchCount / originalWords.length) * 100) : 0;
             
-            // Hiển thị chuẩn câu hiện tại
             diffOutput.innerText = currentRawSegment;
             scoreText.innerText = `Độ chính xác: ${accuracy}% (Từ đúng: ${matchCount}/${originalWords.length})`;
 
             container.classList.remove('hidden');
             translateOutput.innerText = "Đang dịch tự động câu hiện tại...";
             
-            // Gọi dịch chuẩn xác theo đúng nội dung của segment hiện tại
             let translated = await translateSegmentText(currentRawSegment);
             translateOutput.innerText = translated;
 
