@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BeListen - Final Custom Edition</title>
+    <title>BeListen - Harry Potter Edition</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
@@ -48,7 +48,8 @@
         <div id="viewTopics" class="flex flex-col gap-3">
             <h2 class="text-xs font-bold uppercase tracking-wider text-emerald-800 mb-1">Chủ đề bài học:</h2>
             
-            <button onclick="openZootopiaTopic()" class="bg-white p-4 rounded-2xl shadow-xs border border-emerald-100 flex items-center justify-between hover:border-emerald-400 hover:shadow-sm transition text-left group">
+            <!-- Chủ đề 1: Zootopia -->
+            <button onclick="openTopic('Zootopia')" class="bg-white p-4 rounded-2xl shadow-xs border border-emerald-100 flex items-center justify-between hover:border-emerald-400 hover:shadow-sm transition text-left group">
                 <div class="flex items-center gap-3">
                     <div class="w-10 h-10 rounded-xl bg-emerald-100 flex items-center justify-center text-emerald-700 font-extrabold text-lg">
                         🦊
@@ -60,20 +61,28 @@
                 </div>
                 <span class="text-emerald-400 font-bold text-sm">▶</span>
             </button>
+
+            <!-- Chủ đề 2: Harry Potter -->
+            <button onclick="openTopic('Harry Potter')" class="bg-white p-4 rounded-2xl shadow-xs border border-emerald-100 flex items-center justify-between hover:border-emerald-400 hover:shadow-sm transition text-left group">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-amber-100 flex items-center justify-center text-amber-700 font-extrabold text-lg">
+                        🧙‍♂️
+                    </div>
+                    <div>
+                        <h3 class="text-sm font-bold text-emerald-950 group-hover:text-emerald-700">Harry Potter</h3>
+                        <p class="text-[11px] text-emerald-600">Luyện nghe các phân cảnh huyền thoại trong Harry Potter</p>
+                    </div>
+                </div>
+                <span class="text-emerald-400 font-bold text-sm">▶</span>
+            </button>
         </div>
 
         <!-- ================= TRANG 2: DANH SÁCH VIDEO CỐ ĐỊNH ================= -->
         <div id="viewVideos" class="hidden flex flex-col gap-3">
-            <h2 id="topicTitleHeader" class="text-xs font-bold uppercase tracking-wider text-emerald-800 mb-1">Danh sách Video - Zootopia:</h2>
+            <h2 id="topicTitleHeader" class="text-xs font-bold uppercase tracking-wider text-emerald-800 mb-1">Danh sách Video:</h2>
             
             <div id="videoListContainer" class="flex flex-col gap-2.5">
-                <button onclick="startPractice('Zootopia - Judy\'s Hustle (Tax Evasion)', 'J9MKjQ6-UBU', 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQU9tUvOG7EkQzPg5kmFttgYc8v4PoHY_ly0BWxnNpCrRbP4A_CLaK21UTbRYTwVVVbhuqNsALLfQUA/pub?output=csv')" class="bg-white p-3.5 rounded-xl border border-emerald-100 flex items-center justify-between text-left hover:border-emerald-400 hover:bg-emerald-50/30 transition shadow-xs">
-                    <div class="flex items-center gap-3">
-                        <span class="w-6 h-6 rounded-full bg-emerald-100 text-emerald-800 text-xs font-bold flex items-center justify-center">1</span>
-                        <span class="text-xs font-bold text-emerald-950">Zootopia - Judy's Hustle (Tax Evasion)</span>
-                    </div>
-                    <span class="text-xs text-emerald-600 font-bold">Học ngay ➔</span>
-                </button>
+                <!-- Nội dung danh sách video sẽ tự nạp theo chủ đề được chọn -->
             </div>
         </div>
 
@@ -111,7 +120,6 @@
                 
                 <textarea id="userInput" rows="3" onkeydown="handleTextareaKey(event)" class="w-full p-3 border border-emerald-200 rounded-xl text-sm bg-emerald-50/20 focus:outline-none focus:border-emerald-500 resize-none text-emerald-950" placeholder="Nhập câu tiếng Anh nghe được vào đây (bấm Enter để Check)..."></textarea>
                 
-                <!-- Đã lược bỏ chữ [ Bấm Enter] theo yêu cầu -->
                 <button onclick="checkResult()" class="mt-3 text-white py-2.5 rounded-xl text-sm font-extrabold shadow-md hover:bg-emerald-700 transition" style="background-color: #059669;">
                     Check ✓
                 </button>
@@ -167,7 +175,6 @@
             document.getElementById('backBtn').classList.toggle('hidden', viewNum === 1);
 
             const subtitle = document.getElementById('headerSubtitle');
-            // Đồng bộ subtitle cố định "Nghe Nghe Nghe thì mới nghe tốt !!!" cho cả 3 trang hoặc tùy theo ý muốn
             subtitle.innerText = "Nghe Nghe Nghe thì mới nghe tốt !!!";
         }
 
@@ -176,8 +183,34 @@
             else if (currentView === 2) setView(1);
         }
 
-        function openZootopiaTopic() {
+        function openTopic(topicName) {
             setView(2);
+            const container = document.getElementById('videoListContainer');
+            const header = document.getElementById('topicTitleHeader');
+            
+            if (topicName === 'Zootopia') {
+                header.innerText = "Danh sách Video - Zootopia:";
+                container.innerHTML = `
+                    <button onclick="startPractice('Zootopia - Judy\'s Hustle (Tax Evasion)', 'J9MKjQ6-UBU', 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQU9tUvOG7EkQzPg5kmFttgYc8v4PoHY_ly0BWxnNpCrRbP4A_CLaK21UTbRYTwVVVbhuqNsALLfQUA/pub?output=csv')" class="bg-white p-3.5 rounded-xl border border-emerald-100 flex items-center justify-between text-left hover:border-emerald-400 hover:bg-emerald-50/30 transition shadow-xs w-full">
+                        <div class="flex items-center gap-3">
+                            <span class="w-6 h-6 rounded-full bg-emerald-100 text-emerald-800 text-xs font-bold flex items-center justify-center">1</span>
+                            <span class="text-xs font-bold text-emerald-950">Zootopia - Judy's Hustle (Tax Evasion)</span>
+                        </div>
+                        <span class="text-xs text-emerald-600 font-bold">Học ngay ➔</span>
+                    </button>
+                `;
+            } else if (topicName === 'Harry Potter') {
+                header.innerText = "Danh sách Video - Harry Potter:";
+                container.innerHTML = `
+                    <button onclick="startPractice('Nón phân loại - Harry Potter 1', 'J9MKjQ6-UBU', 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQTB4HbLMtGm5lxt1CacI1wXGaAyEyhosNtoYJ7KxT6i3E4AYSqWEkZ7SkcMUtprZC1gEyYxS1GYP3j/pub?gid=0&single=true&output=csv')" class="bg-white p-3.5 rounded-xl border border-emerald-100 flex items-center justify-between text-left hover:border-emerald-400 hover:bg-emerald-50/30 transition shadow-xs w-full">
+                        <div class="flex items-center gap-3">
+                            <span class="w-6 h-6 rounded-full bg-amber-100 text-amber-800 text-xs font-bold flex items-center justify-center">1</span>
+                            <span class="text-xs font-bold text-emerald-950">Nón phân loại - Harry Potter 1</span>
+                        </div>
+                        <span class="text-xs text-emerald-600 font-bold">Học ngay ➔</span>
+                    </button>
+                `;
+            }
         }
 
         async function startPractice(lessonTitle, videoId, csvUrl) {
@@ -191,7 +224,7 @@
                 const csvText = await res.text();
                 parseTranscriptFromSheet(csvText);
             } catch (e) {
-                transcriptSegments = [{ startTime: 0, endTime: 6, text: "welcome to belisten app practice" }];
+                transcriptSegments = [{ startTime: 0, endTime: 6, text: "welcome to belisten app practice", isSilent: false }];
                 updateSegmentUI();
             }
         }
@@ -221,17 +254,20 @@
                     let text = match[3].replace(/^["']|["']$/g, '').trim();
 
                     if (text.length > 0) {
+                        // Kiểm tra nếu câu thoại là "***" (khoảng lặng / nghỉ)
+                        let isSilent = text === "***";
                         transcriptSegments.push({
                             startTime: startTime,
                             endTime: endTime > startTime ? endTime : startTime + 5,
-                            text: text
+                            text: text,
+                            isSilent: isSilent
                         });
                     }
                 }
             });
 
             if (transcriptSegments.length === 0) {
-                transcriptSegments = [{ startTime: 0, endTime: 6, text: "welcome to practice listening and dictation" }];
+                transcriptSegments = [{ startTime: 0, endTime: 6, text: "welcome to practice listening and dictation", isSilent: false }];
             }
 
             currentSegmentIndex = 0;
@@ -239,12 +275,28 @@
         }
 
         function updateSegmentUI() {
+            let seg = transcriptSegments[currentSegmentIndex];
+            
+            // Nếu là đoạn *** (không có lời thoại) -> Tự động bỏ qua việc yêu cầu trả lời
+            if (seg && seg.isSilent) {
+                document.getElementById('statusNotice').innerText = "🎵 Đoạn nhạc/khoảng lặng - Đang phát tự động qua câu tiếp theo...";
+                document.getElementById('userInput').value = "";
+                document.getElementById('resultContainer').classList.add('hidden');
+                
+                if (player && typeof player.seekTo === 'function') {
+                    segmentStart = seg.startTime;
+                    segmentEnd = seg.endTime;
+                    player.seekTo(segmentStart, true);
+                    player.playVideo();
+                    isLooping = false; // Không lặp lại đoạn ***
+                }
+                return;
+            }
+
             document.getElementById('currentSegmentIdx').innerText = currentSegmentIndex + 1;
             document.getElementById('totalSegmentsIdx').innerText = transcriptSegments.length;
             document.getElementById('userInput').value = "";
             document.getElementById('resultContainer').classList.add('hidden');
-            
-            let seg = transcriptSegments[currentSegmentIndex];
             document.getElementById('statusNotice').innerText = "💡 Đang lặp đúng mốc thời gian: Gõ đúng 100% để qua câu tiếp theo!";
 
             if (player && typeof player.seekTo === 'function' && seg) {
@@ -315,16 +367,27 @@
             updateSegmentUI();
         }
 
+        // Trình theo dõi video: Xử lý chạy qua đoạn *** không lặp
         function startLoopTracker() {
             setInterval(() => {
-                if (isLooping && player && typeof player.getPlayerState === 'function' && player.getPlayerState() === YT.PlayerState.PLAYING) {
+                if (player && typeof player.getPlayerState === 'function' && player.getPlayerState() === YT.PlayerState.PLAYING) {
                     let currentTime = player.getCurrentTime();
                     let seg = transcriptSegments[currentSegmentIndex];
                     if (seg) {
                         segmentStart = seg.startTime;
                         segmentEnd = seg.endTime;
+                        
+                        // Nếu là đoạn *** -> Chạy hết thời gian thì tự động nhảy sang câu tiếp theo
+                        if (seg.isSilent) {
+                            if (currentTime >= segmentEnd) {
+                                nextSegment();
+                            }
+                            return;
+                        }
                     }
-                    if (segmentEnd > segmentStart && currentTime >= segmentEnd) {
+                    
+                    // Với câu thường -> Lặp lại nếu đang bật chế độ Loop
+                    if (isLooping && segmentEnd > segmentStart && currentTime >= segmentEnd) {
                         player.seekTo(segmentStart, true);
                     }
                 }
@@ -385,6 +448,16 @@
 
             let seg = transcriptSegments[currentSegmentIndex] || { text: "" };
             let currentRawSegment = seg.text;
+
+            // Nếu bấm xem đáp án ở câu ***
+            if (seg.isSilent) {
+                diffOutput.innerText = "(Đoạn chuyển cảnh / Không thoại)";
+                scoreText.innerText = "";
+                translateOutput.innerText = "(Khoảng lặng)";
+                container.classList.remove('hidden');
+                return;
+            }
+
             let targetClean = cleanText(currentRawSegment);
             let userClean = cleanText(document.getElementById('userInput').value);
 
