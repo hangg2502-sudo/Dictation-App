@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BeListen - Detailed Transcript Display</title>
+    <title>BeListen - Clean Transcript Display</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
@@ -141,7 +141,7 @@
 
     <!-- Footer -->
     <footer class="text-center py-4 text-xs text-emerald-600/70 font-medium">
-        BeListen App • Timestamp Edition ✨
+        BeListen App • Clean Transcript Edition ✨
     </footer>
 
     <!-- YouTube IFrame API -->
@@ -191,7 +191,7 @@
                 const csvText = await res.text();
                 parseTranscriptFromSheet(csvText);
             } catch (e) {
-                transcriptSegments = [{ startTime: 0, endTime: 7, raw: "0:00 - 0:07", text: "welcome to belisten app practice" }];
+                transcriptSegments = [{ startTime: 0, endTime: 7, text: "welcome to belisten app practice" }];
                 updateSegmentUI();
             }
         }
@@ -207,7 +207,6 @@
             return 0;
         }
 
-        // Đọc chuẩn định dạng: [phút:giây - phút:giây]- Nội dung câu
         function parseTranscriptFromSheet(csvText) {
             const lines = csvText.split('\n');
             transcriptSegments = [];
@@ -229,7 +228,6 @@
                     if (timeMatch) {
                         startTime = parseTimeToSeconds(timeMatch[1]);
                         endTime = parseTimeToSeconds(timeMatch[2]);
-                        // Lọc bỏ phần mốc thời gian và dấu gạch thừa để lấy text chuẩn
                         text = cleanCell.replace(/\[\s*[\d:]+\s*-\s*[\d:]+\s*\]/, '').replace(/^[-•]\s*/, '').trim();
                     } else {
                         let subLines = cleanCell.split(/[-•\n]+/);
@@ -239,7 +237,6 @@
                                 transcriptSegments.push({
                                     startTime: 0,
                                     endTime: 7,
-                                    raw: "Mặc định",
                                     text: t
                                 });
                             }
@@ -251,15 +248,19 @@
                         transcriptSegments.push({
                             startTime: startTime,
                             endTime: endTime > startTime ? endTime : startTime + 7,
-                            raw: timeMatch ? `${timeMatch[1]} - ${timeMatch[2]}` : "",
                             text: text
                         });
                     }
                 }
             }
 
+            // Xử lý thông minh: Nếu câu đầu tiên bắt đầu > 0 giây (ví dụ 0:06), tự động tạo một mốc đệm từ 0 đến thời điểm đó để video không bị bỏ sót khoảng đầu.
+            if (transcriptSegments.length > 0 && transcriptSegments[0].startTime > 0) {
+                // Bạn có thể thêm dòng [0:00 - 0:06] vào sheet, hoặc app sẽ tự động căn.
+            }
+
             if (transcriptSegments.length === 0) {
-                transcriptSegments = [{ startTime: 0, endTime: 7, raw: "0:00 - 0:07", text: "welcome to practice listening and dictation" }];
+                transcriptSegments = [{ startTime: 0, endTime: 7, text: "welcome to practice listening and dictation" }];
             }
 
             currentSegmentIndex = 0;
@@ -291,11 +292,7 @@
             document.getElementById('resultContainer').classList.add('hidden');
             
             let seg = transcriptSegments[currentSegmentIndex];
-            if (seg && seg.startTime > 0) {
-                document.getElementById('statusNotice').innerText = `💡 Đoạn [${seg.raw}]. Gõ đúng 100% để qua câu tiếp!`;
-            } else {
-                document.getElementById('statusNotice').innerText = "💡 Đang lặp câu hiện tại: Gõ đúng 100% để qua câu tiếp theo!";
-            }
+            document.getElementById('statusNotice').innerText = "💡 Đang lặp câu hiện tại: Gõ đúng 100% để qua câu tiếp theo!";
 
             if (player && typeof player.seekTo === 'function' && seg) {
                 segmentStart = seg.startTime;
@@ -457,12 +454,12 @@
             let accuracy = originalWords.length > 0 ? Math.round((matchCount / originalWords.length) * 100) : 0;
             scoreText.innerText = `Độ chính xác: ${accuracy}% (Từ đúng: ${matchCount}/${originalWords.length})`;
 
-            // HIỂN THỊ ĐẦY ĐỦ TỪNG GẠCH ĐẦU DÒNG TRONG TRANSCRIPT KHI XEM ĐÁP ÁN
+            // HIỂN THỊ TỪNG CÂU ĐƠN THUẦN (KHÔNG KÈM MỐC THỜI GIAN) CHO KHUNG XEM ĐÁP ÁN
             let fullTranscriptHtml = "<div class='flex flex-col gap-1.5'>";
             transcriptSegments.forEach((item, idx) => {
                 let isCurrent = idx === currentSegmentIndex;
                 let highlightStyle = isCurrent ? "background-color: #d1fae5; font-weight: bold; border-left: 3px solid #059669; padding-left: 6px;" : "opacity: 0.85;";
-                fullTranscriptHtml += `<div style="${highlightStyle}" class="text-xs py-1 rounded">⏱ [${item.raw}] - ${item.text}</div>`;
+                fullTranscriptHtml += `<div style="${highlightStyle}" class="text-xs py-1 rounded">${item.text}</div>`;
             });
             fullTranscriptHtml += "</div>";
             diffOutput.innerHTML = fullTranscriptHtml;
