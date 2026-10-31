@@ -38,7 +38,7 @@
             <h1 class="text-2xl font-extrabold tracking-wide" style="color: #047857;">BeListen</h1>
             <p id="headerSubtitle" class="text-xs text-emerald-600 font-semibold">Chọn chủ đề học tập bên dưới</p>
         </div>
-        <div class="w-12"></div> <!-- Spacer balance -->
+        <div class="w-12"></div>
     </header>
 
     <!-- Main Content -->
@@ -48,7 +48,6 @@
         <div id="viewTopics" class="flex flex-col gap-3">
             <h2 class="text-xs font-bold uppercase tracking-wider text-emerald-800 mb-1">Chủ đề bài học:</h2>
             
-            <!-- Thẻ Chủ đề Zootopia liên kết trực tiếp tới Google Sheet của bạn -->
             <button onclick="openTopic('Zootopia', 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQU9tUvOG7EkQzPg5kmFttgYc8v4PoHY_ly0BWxnNpCrRbP4A_CLaK21UTbRYTwVVVbhuqNsALLfQUA/pub?output=csv')" class="bg-white p-4 rounded-2xl shadow-xs border border-emerald-100 flex items-center justify-between hover:border-emerald-400 hover:shadow-sm transition text-left group">
                 <div class="flex items-center gap-3">
                     <div class="w-10 h-10 rounded-xl bg-emerald-100 flex items-center justify-center text-emerald-700 font-extrabold text-lg">
@@ -70,7 +69,7 @@
                 ⏳ Đang tải danh sách video từ Google Sheets...
             </div>
             <div id="videoListContainer" class="flex flex-col gap-2.5">
-                <!-- Danh sách video từ Cột B sẽ tự động hiển thị tại đây -->
+                <!-- Danh sách tên video từ Cột B hiển thị tại đây -->
             </div>
         </div>
 
@@ -81,7 +80,8 @@
             <div class="bg-white p-4 rounded-2xl shadow-xs border border-emerald-100 flex flex-col gap-3">
                 <h3 id="currentLessonTitle" class="text-xs font-bold text-emerald-800 truncate">Tên Video</h3>
                 
-                <div id="playerContainer" class="video-container bg-emerald-950 shadow-inner">
+                <!-- Khung chứa YouTube Player tránh lỗi load -->
+                <div class="video-container bg-emerald-950 shadow-inner">
                     <div id="player"></div>
                 </div>
 
@@ -150,12 +150,14 @@
         let transcriptSegments = [];
         let currentSegmentIndex = 0;
 
-        let player;
+        let player = null;
         let isLooping = true;
         let segmentDuration = 7;
         let segmentStart = 0;
 
-        function onYouTubeIframeAPIReady() {}
+        function onYouTubeIframeAPIReady() {
+            // API sẵn sàng
+        }
 
         function setView(viewNum) {
             currentView = viewNum;
@@ -226,6 +228,7 @@
             currentSheetData.forEach((item, index) => {
                 const btn = document.createElement('button');
                 btn.className = "bg-white p-3.5 rounded-xl border border-emerald-100 flex items-center justify-between text-left hover:border-emerald-400 hover:bg-emerald-50/30 transition shadow-xs";
+                // Hiển thị tên từ cột B (item.title)
                 btn.innerHTML = `
                     <div class="flex items-center gap-3">
                         <span class="w-6 h-6 rounded-full bg-emerald-100 text-emerald-800 text-xs font-bold flex items-center justify-center">${index + 1}</span>
@@ -271,7 +274,7 @@
         }
 
         function loadYouTubePlayer(videoId) {
-            if (!player) {
+            if (!player || typeof player.loadVideoById !== 'function') {
                 player = new YT.Player('player', {
                     videoId: videoId,
                     playerVars: { 'playsinline': 1 },
@@ -294,7 +297,7 @@
                 btn.innerText = "🛑 Tắt Lặp Câu (Đang Bật)";
                 btn.style.backgroundColor = "#047857";
                 notice.innerText = "💡 Đang khóa lặp câu hiện tại!";
-                if (player) segmentStart = player.getCurrentTime();
+                if (player && typeof player.getCurrentTime === 'function') segmentStart = player.getCurrentTime();
             } else {
                 btn.innerText = "🔁 Bật Lặp Câu (Auto)";
                 btn.style.backgroundColor = "#059669";
@@ -311,7 +314,7 @@
             
             updateSegmentUI();
 
-            if (player) {
+            if (player && typeof player.getCurrentTime === 'function') {
                 segmentStart = player.getCurrentTime();
                 player.seekTo(segmentStart, true);
                 player.playVideo();
@@ -324,7 +327,7 @@
 
         function startLoopTracker() {
             setInterval(() => {
-                if (isLooping && player && player.getPlayerState() === YT.PlayerState.PLAYING) {
+                if (isLooping && player && typeof player.getPlayerState === 'function' && player.getPlayerState() === YT.PlayerState.PLAYING) {
                     let currentTime = player.getCurrentTime();
                     if (currentTime - segmentStart >= segmentDuration) {
                         player.seekTo(segmentStart, true);
