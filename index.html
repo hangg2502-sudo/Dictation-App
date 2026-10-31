@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BeListen - Multi-Sheet Learning</title>
+    <title>BeListen - Manual Title Edition</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
@@ -27,7 +27,7 @@
         }
     </style>
 </head>
-<body class="min-h-screen flex flex-col justify-between text-emerald-950" onkeydown="handleGlobalKey(event)">
+<body class="min-h-screen flex flex-col justify-between text-emerald-950">
 
     <!-- Header BeListen -->
     <header class="bg-white/85 backdrop-blur-md border-b border-emerald-100 py-4 px-6 text-center shadow-xs sticky top-0 z-10 flex justify-between items-center">
@@ -48,7 +48,7 @@
         <div id="viewTopics" class="flex flex-col gap-3">
             <h2 class="text-xs font-bold uppercase tracking-wider text-emerald-800 mb-1">Chủ đề bài học:</h2>
             
-            <button onclick="openTopic('Zootopia', 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQU9tUvOG7EkQzPg5kmFttgYc8v4PoHY_ly0BWxnNpCrRbP4A_CLaK21UTbRYTwVVVbhuqNsALLfQUA/pub?output=csv')" class="bg-white p-4 rounded-2xl shadow-xs border border-emerald-100 flex items-center justify-between hover:border-emerald-400 hover:shadow-sm transition text-left group">
+            <button onclick="openZootopiaTopic()" class="bg-white p-4 rounded-2xl shadow-xs border border-emerald-100 flex items-center justify-between hover:border-emerald-400 hover:shadow-sm transition text-left group">
                 <div class="flex items-center gap-3">
                     <div class="w-10 h-10 rounded-xl bg-emerald-100 flex items-center justify-center text-emerald-700 font-extrabold text-lg">
                         🦊
@@ -62,14 +62,21 @@
             </button>
         </div>
 
-        <!-- ================= TRANG 2: DANH SÁCH VIDEO TRONG CHỦ ĐỀ ================= -->
+        <!-- ================= TRANG 2: DANH SÁCH VIDEO CỐ ĐỊNH ================= -->
         <div id="viewVideos" class="hidden flex flex-col gap-3">
-            <h2 id="topicTitleHeader" class="text-xs font-bold uppercase tracking-wider text-emerald-800 mb-1">Danh sách Video:</h2>
-            <div id="loadingNotice" class="text-center py-8 text-xs font-semibold text-emerald-600">
-                ⏳ Đang tải danh sách bài học...
-            </div>
+            <h2 id="topicTitleHeader" class="text-xs font-bold uppercase tracking-wider text-emerald-800 mb-1">Danh sách Video - Zootopia:</h2>
+            
             <div id="videoListContainer" class="flex flex-col gap-2.5">
-                <!-- Danh sách tiêu đề bài học hiển thị tại đây -->
+                <!-- Danh sách tiêu đề cài đặt thủ công (Không lấy từ sheet cho trang này) -->
+                <button onclick="startPractice('Zootopia - Judy\'s Hustle (Tax Evasion)', 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQU9tUvOG7EkQzPg5kmFttgYc8v4PoHY_ly0BWxnNpCrRbP4A_CLaK21UTbRYTwVVVbhuqNsALLfQUA/pub?output=csv')" class="bg-white p-3.5 rounded-xl border border-emerald-100 flex items-center justify-between text-left hover:border-emerald-400 hover:bg-emerald-50/30 transition shadow-xs">
+                    <div class="flex items-center gap-3">
+                        <span class="w-6 h-6 rounded-full bg-emerald-100 text-emerald-800 text-xs font-bold flex items-center justify-center">1</span>
+                        <span class="text-xs font-bold text-emerald-950">Zootopia - Judy's Hustle (Tax Evasion)</span>
+                    </div>
+                    <span class="text-xs text-emerald-600 font-bold">Học ngay ➔</span>
+                </button>
+                
+                <!-- Sau này khi bạn muốn thêm video thủ công thứ 2, bạn chỉ cần copy nút bấm trên dán vào đây -->
             </div>
         </div>
 
@@ -93,7 +100,7 @@
                         ⏭ Câu tiếp
                     </button>
                 </div>
-                <div id="statusNotice" class="text-center text-[11px] font-semibold text-emerald-700">💡 Gõ đúng 100% để qua câu tiếp theo (hoặc bấm Space để Done)!</div>
+                <div id="statusNotice" class="text-center text-[11px] font-semibold text-emerald-700">💡 Gõ đúng 100% để qua câu tiếp theo (hoặc bấm phím Space để Done nhanh)!</div>
             </div>
 
             <!-- Khung Nhập Liệu -->
@@ -105,7 +112,7 @@
                     <button onclick="toggleAnswerVisibility()" class="text-xs text-emerald-600 font-bold hover:underline">Xem đáp án & Dịch</button>
                 </div>
                 
-                <textarea id="userInput" rows="3" class="w-full p-3 border border-emerald-200 rounded-xl text-sm bg-emerald-50/20 focus:outline-none focus:border-emerald-500 resize-none text-emerald-950" placeholder="Nhập câu tiếng Anh nghe được vào đây..."></textarea>
+                <textarea id="userInput" rows="3" onkeydown="handleTextareaKey(event)" class="w-full p-3 border border-emerald-200 rounded-xl text-sm bg-emerald-50/20 focus:outline-none focus:border-emerald-500 resize-none text-emerald-950" placeholder="Nhập câu tiếng Anh nghe được vào đây (bấm Space để Done)..."></textarea>
                 
                 <button onclick="checkResult()" class="mt-3 text-white py-2.5 rounded-xl text-sm font-extrabold shadow-md hover:bg-emerald-700 transition" style="background-color: #059669;">
                     Done (Kiểm Tra & Nộp bài) ✓ [Bấm Space]
@@ -116,7 +123,7 @@
             <div id="resultContainer" class="bg-white p-4 rounded-2xl shadow-xs border border-emerald-200 hidden flex flex-col gap-3">
                 <div>
                     <div class="flex justify-between items-center mb-1">
-                        <h3 class="text-xs font-bold uppercase tracking-wider" style="color: #047857;">ĐÁP ÁN TRANSCRIPT CHUẨN:</h3>
+                        <h3 class="text-xs font-bold uppercase tracking-wider" style="color: #047857;">ĐÁP ÁN TRANSCRIPT CHUẨN (TỪ GOOGLE SHEET):</h3>
                         <span class="text-[10px] bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full font-bold">📊 Chấm tự động</span>
                     </div>
                     <div id="diffOutput" class="text-sm leading-relaxed font-mono p-3 rounded-xl border border-emerald-100" style="background-color: #ecfdf5;"></div>
@@ -137,15 +144,13 @@
 
     <!-- Footer -->
     <footer class="text-center py-4 text-xs text-emerald-600/70 font-medium">
-        BeListen App • Multi-Sheet Edition ✨
+        BeListen App • Manual Title Edition ✨
     </footer>
 
     <!-- YouTube IFrame API -->
     <script src="https://www.youtube.com/iframe_api"></script>
     <script>
         let currentView = 1;
-        let lessonsData = [];
-        let activeVideoData = null;
         let transcriptSegments = [];
         let currentSegmentIndex = 0;
 
@@ -153,6 +158,9 @@
         let isLooping = true;
         let segmentDuration = 7;
         let segmentStart = 0;
+
+        // Link YouTube cố định tương ứng với video đầu tiên
+        const defaultYouTubeUrl = "https://youtu.be/5qap5aO4i9A"; 
 
         function onYouTubeIframeAPIReady() {}
 
@@ -174,46 +182,48 @@
             else if (currentView === 2) setView(1);
         }
 
-        async function openTopic(topicName, csvUrl) {
+        function openZootopiaTopic() {
             setView(2);
-            document.getElementById('topicTitleHeader').innerText = `Danh sách Video - ${topicName}:`;
-            document.getElementById('loadingNotice').classList.remove('hidden');
-            document.getElementById('videoListContainer').innerHTML = "";
+        }
+
+        // Bắt đầu luyện tập: Tải Transcript từ Google Sheet cho Trang 3
+        async function startPractice(lessonTitle, csvUrl) {
+            setView(3);
+            document.getElementById('currentLessonTitle').innerText = lessonTitle;
+            
+            let videoId = extractYouTubeId(defaultYouTubeUrl);
+            loadYouTubePlayer(videoId);
 
             try {
                 const res = await fetch(csvUrl);
                 const csvText = await res.text();
-                parseMultiSheetData(csvText);
+                parseTranscriptFromSheet(csvText);
             } catch (e) {
-                document.getElementById('loadingNotice').innerText = "⚠️ Không thể tải dữ liệu từ Google Sheet. Hãy kiểm tra lại chế độ xuất bản!";
+                transcriptSegments = ["welcome to belisten app practice"];
+                updateSegmentUI();
             }
         }
 
-        function parseMultiSheetData(csvText) {
+        // Chỉ lấy Transcript từ Google Sheet (Cột thứ 3 của sheet)
+        function parseTranscriptFromSheet(csvText) {
             const lines = csvText.split('\n');
-            lessonsData = [];
+            let rawTranscript = "";
 
             for (let i = 1; i < lines.length; i++) {
                 if (!lines[i].trim()) continue;
-                
                 let row = parseCSVLine(lines[i]);
                 if (row.length >= 3) {
-                    // Cột 1 (Index 0): Tiêu đề bài học hiển thị ở trang 2
-                    let title = row[0].replace(/^["']|["']$/g, '').trim();       
-                    // Cột 2 (Index 1): Link YouTube
-                    let rawUrl = row[1].replace(/^["']|["']$/g, '').trim();      
-                    // Cột 3 (Index 2): Transcript
-                    let rawTranscript = row[2].replace(/^["']|["']$/g, '').trim();
-
-                    let videoId = extractYouTubeId(rawUrl);
-
-                    if (title && videoId) {
-                        lessonsData.push({ title, videoId, rawTranscript });
-                    }
+                    rawTranscript += " " + row[2].replace(/^["']|["']$/g, '').trim();
                 }
             }
 
-            renderVideoList();
+            if (!rawTranscript.trim()) {
+                rawTranscript = "welcome to practice listening and dictation";
+            }
+
+            parseTranscriptSegments(rawTranscript);
+            currentSegmentIndex = 0;
+            updateSegmentUI();
         }
 
         function parseCSVLine(text) {
@@ -235,7 +245,7 @@
         }
 
         function extractYouTubeId(url) {
-            if (!url) return "";
+            if (!url) return "5qap5aO4i9A";
             if (url.includes("youtu.be/")) {
                 return url.split("youtu.be/")[1].split("?")[0];
             } else if (url.includes("watch?v=")) {
@@ -244,50 +254,11 @@
             return url.trim();
         }
 
-        function renderVideoList() {
-            const container = document.getElementById('videoListContainer');
-            const loadingNotice = document.getElementById('loadingNotice');
-            loadingNotice.classList.add('hidden');
-            container.innerHTML = "";
-
-            if (lessonsData.length === 0) {
-                container.innerHTML = `<div class="text-center py-4 text-xs text-emerald-600">Chưa có bài học nào hoặc dữ liệu sheet chưa đúng.</div>`;
-                return;
-            }
-
-            lessonsData.forEach((item, index) => {
-                const btn = document.createElement('button');
-                btn.className = "bg-white p-3.5 rounded-xl border border-emerald-100 flex items-center justify-between text-left hover:border-emerald-400 hover:bg-emerald-50/30 transition shadow-xs";
-                // Ép hiển thị đúng Tiêu đề chuẩn từ sheet Tiêu đề
-                btn.innerHTML = `
-                    <div class="flex items-center gap-3">
-                        <span class="w-6 h-6 rounded-full bg-emerald-100 text-emerald-800 text-xs font-bold flex items-center justify-center">${index + 1}</span>
-                        <span class="text-xs font-bold text-emerald-950">${item.title}</span>
-                    </div>
-                    <span class="text-xs text-emerald-600 font-bold">Học ngay ➔</span>
-                `;
-                btn.onclick = () => startPractice(item);
-                container.appendChild(btn);
-            });
-        }
-
-        function startPractice(videoItem) {
-            activeVideoData = videoItem;
-            setView(3);
-
-            document.getElementById('currentLessonTitle').innerText = videoItem.title;
-            
-            parseTranscriptSegments(videoItem.rawTranscript);
-            currentSegmentIndex = 0;
-
-            loadYouTubePlayer(videoItem.videoId);
-            updateSegmentUI();
-        }
-
+        // Tách câu lặp theo dấu gạch đầu dòng (-) hoặc xuống dòng trong Transcript
         function parseTranscriptSegments(rawText) {
             const lines = rawText.split(/[-•\n]+/);
             transcriptSegments = lines
-                .map(line => line.trim())
+                .map(line => line.trim().replace(/^[-•]\s*/, ''))
                 .filter(line => line.length > 0);
 
             if (transcriptSegments.length === 0) {
@@ -366,15 +337,11 @@
             }, 400);
         }
 
-        // Bắt sự kiện toàn cục cho phím Space để gọi nút Done
-        function handleGlobalKey(event) {
-            if (event.code === 'Space' && currentView === 3) {
-                // Chỉ kích hoạt khi đang ở màn hình luyện tập và không gõ trong các input khác
-                const activeEl = document.activeElement;
-                if (activeEl && activeEl.id === 'userInput') {
-                    event.preventDefault(); // Ngăn dấu cách thừa trong textarea
-                    checkResult();
-                }
+        // Lắng nghe phím Space trên ô nhập liệu để gọi Done ngay lập tức
+        function handleTextareaKey(event) {
+            if (event.code === 'Space') {
+                event.preventDefault();
+                checkResult();
             }
         }
 
@@ -457,7 +424,11 @@
                     const btn = document.getElementById('loopBtn');
                     btn.innerText = "🔁 Bật Lặp Câu (Auto)";
                     btn.style.backgroundColor = "#059669";
-                    notice.innerHTML = "✅ <span class='text-emerald-700 font-bold'>Chính xác 100%!</span> Mở khóa thành công. Bấm <span class='text-emerald-600 font-bold'>[⏭ Câu tiếp]</span> hoặc chuyển đoạn mới!";
+                    notice.innerHTML = "✅ <span class='text-emerald-700 font-bold'>Chính xác 100%!</span> Đã mở khóa. Bấm <span class='text-emerald-600 font-bold'>[⏭ Câu tiếp]</span> hoặc bấm Space để chuyển đoạn mới!";
+                    
+                    setTimeout(() => {
+                        if (currentView === 3) nextSegment();
+                    }, 800);
                 } else {
                     isLooping = true;
                     const btn = document.getElementById('loopBtn');
