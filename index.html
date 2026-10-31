@@ -67,7 +67,7 @@
             <h2 id="topicTitleHeader" class="text-xs font-bold uppercase tracking-wider text-emerald-800 mb-1">Danh sách Video - Zootopia:</h2>
             
             <div id="videoListContainer" class="flex flex-col gap-2.5">
-                <!-- Danh sách tiêu đề cài đặt thủ công (Không lấy từ sheet cho trang này) -->
+                <!-- Tiêu đề cố định thủ công theo yêu cầu -->
                 <button onclick="startPractice('Zootopia - Judy\'s Hustle (Tax Evasion)', 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQU9tUvOG7EkQzPg5kmFttgYc8v4PoHY_ly0BWxnNpCrRbP4A_CLaK21UTbRYTwVVVbhuqNsALLfQUA/pub?output=csv')" class="bg-white p-3.5 rounded-xl border border-emerald-100 flex items-center justify-between text-left hover:border-emerald-400 hover:bg-emerald-50/30 transition shadow-xs">
                     <div class="flex items-center gap-3">
                         <span class="w-6 h-6 rounded-full bg-emerald-100 text-emerald-800 text-xs font-bold flex items-center justify-center">1</span>
@@ -75,8 +75,6 @@
                     </div>
                     <span class="text-xs text-emerald-600 font-bold">Học ngay ➔</span>
                 </button>
-                
-                <!-- Sau này khi bạn muốn thêm video thủ công thứ 2, bạn chỉ cần copy nút bấm trên dán vào đây -->
             </div>
         </div>
 
@@ -159,8 +157,8 @@
         let segmentDuration = 7;
         let segmentStart = 0;
 
-        // Link YouTube cố định tương ứng với video đầu tiên
-        const defaultYouTubeUrl = "https://youtu.be/5qap5aO4i9A"; 
+        // Lấy link YouTube từ Cột 2 (Index 1) trong Google Sheet, dự phòng link mặc định
+        let currentYouTubeId = "5qap5aO4i9A"; 
 
         function onYouTubeIframeAPIReady() {}
 
@@ -186,36 +184,44 @@
             setView(2);
         }
 
-        // Bắt đầu luyện tập: Tải Transcript từ Google Sheet cho Trang 3
+        // Bắt đầu luyện tập: Lấy Link YouTube (cột 2) và Transcript (cột 3) từ Google Sheet
         async function startPractice(lessonTitle, csvUrl) {
             setView(3);
             document.getElementById('currentLessonTitle').innerText = lessonTitle;
-            
-            let videoId = extractYouTubeId(defaultYouTubeUrl);
-            loadYouTubePlayer(videoId);
 
             try {
                 const res = await fetch(csvUrl);
                 const csvText = await res.text();
-                parseTranscriptFromSheet(csvText);
+                parseSheetData(csvText);
             } catch (e) {
+                currentYouTubeId = "5qap5aO4i9A";
                 transcriptSegments = ["welcome to belisten app practice"];
+                loadYouTubePlayer(currentYouTubeId);
                 updateSegmentUI();
             }
         }
 
-        // Chỉ lấy Transcript từ Google Sheet (Cột thứ 3 của sheet)
-        function parseTranscriptFromSheet(csvText) {
+        // Đọc dữ liệu từ Google Sheet: Cột 2 lấy Link YouTube, Cột 3 lấy Transcript
+        function parseSheetData(csvText) {
             const lines = csvText.split('\n');
             let rawTranscript = "";
+            let foundUrl = "";
 
             for (let i = 1; i < lines.length; i++) {
                 if (!lines[i].trim()) continue;
                 let row = parseCSVLine(lines[i]);
                 if (row.length >= 3) {
-                    rawTranscript += " " + row[2].replace(/^["']|["']$/g, '').trim();
+                    if (!foundUrl && row[1]) {
+                        foundUrl = row[1].replace(/^["']|["']$/g, '').trim();
+                    }
+                    if (row[2]) {
+                        rawTranscript += " " + row[2].replace(/^["']|["']$/g, '').trim();
+                    }
                 }
             }
+
+            currentYouTubeId = extractYouTubeId(foundUrl);
+            loadYouTubePlayer(currentYouTubeId);
 
             if (!rawTranscript.trim()) {
                 rawTranscript = "welcome to practice listening and dictation";
@@ -254,7 +260,7 @@
             return url.trim();
         }
 
-        // Tách câu lặp theo dấu gạch đầu dòng (-) hoặc xuống dòng trong Transcript
+        // Tách câu lặp dựa theo dấu gạch đầu dòng (-) hoặc xuống dòng trong Transcript
         function parseTranscriptSegments(rawText) {
             const lines = rawText.split(/[-•\n]+/);
             transcriptSegments = lines
