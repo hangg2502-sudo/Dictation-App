@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BeListen - Exact Timestamp Edition</title>
+    <title>BeListen - Perfect Timestamp Edition</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
@@ -141,7 +141,7 @@
 
     <!-- Footer -->
     <footer class="text-center py-4 text-xs text-emerald-600/70 font-medium">
-        BeListen App • Exact Timestamp Edition ✨
+        BeListen App • Perfect Timestamp Edition ✨
     </footer>
 
     <!-- YouTube IFrame API -->
@@ -207,7 +207,7 @@
             return 0;
         }
 
-        // Đọc chuẩn định dạng mới: [0:00 - 0:06]- Nội dung câu
+        // Đọc chuẩn định dạng trong Sheet: [phút:giây - phút:giây]- Nội dung câu
         function parseTranscriptFromSheet(csvText) {
             const lines = csvText.split('\n');
             transcriptSegments = [];
@@ -220,7 +220,7 @@
                     let cleanCell = cell ? cell.replace(/^["']|["']$/g, '').trim() : "";
                     if (!cleanCell || cleanCell.includes("http") || cleanCell.includes("youtu")) continue;
 
-                    // Regex bắt cấu trúc [mm:ss - mm:ss] theo sát dấu gạch ngang
+                    // Regex quét chính xác cấu trúc [mm:ss - mm:ss]- (hỗ trợ linh hoạt khoảng trắng)
                     let timeMatch = cleanCell.match(/\[\s*([\d:]+)\s*-\s*([\d:]+)\s*\]\s*-?\s*(.*)/);
                     
                     if (timeMatch) {
@@ -234,19 +234,6 @@
                                 endTime: endTime > startTime ? endTime : startTime + 5,
                                 text: text
                             });
-                        }
-                    } else {
-                        // Trường hợp không có mốc thời gian, tách tự động bằng gạch đầu dòng
-                        let subLines = cleanCell.split(/[-•\n]+/);
-                        for (let sub of subLines) {
-                            let t = sub.trim().replace(/^[-•]\s*/, '');
-                            if (t.length > 0) {
-                                transcriptSegments.push({
-                                    startTime: 0,
-                                    endTime: 5,
-                                    text: t
-                                });
-                            }
                         }
                     }
                 }
