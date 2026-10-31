@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BeListen - Locked Video Edition</title>
+    <title>BeListen - Clean Video Edition</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
@@ -24,17 +24,7 @@
             left: 0;
             width: 100%;
             height: 100%;
-        }
-        /* Lớp phủ khóa tương tác trực tiếp trên video (chặn bấm tua, chặn mở YouTube) */
-        .video-lock-overlay {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: 5;
-            pointer-events: auto;
-            background: transparent;
+            pointer-events: none; /* Vô hiệu hóa mọi thao tác bấm trực tiếp vào iframe để YouTube không bật UI */
         }
     </style>
 </head>
@@ -106,8 +96,6 @@
                 
                 <div class="video-container bg-emerald-950 shadow-inner relative">
                     <div id="player"></div>
-                    <!-- Lớp phủ vô hiệu hóa click/tua trực tiếp trên video -->
-                    <div class="video-lock-overlay"></div>
                 </div>
 
                 <!-- Điều khiển lặp câu -->
@@ -328,11 +316,13 @@
                     videoId: videoId,
                     playerVars: { 
                         'playsinline': 1,
-                        'controls': 0,          /* Ẩn thanh điều khiển/tua */
-                        'disablekb': 1,         /* Vô hiệu hóa phím tắt bàn phím trên video */
-                        'fs': 0,                /* Ẩn nút phóng to toàn màn hình */
-                        'modestbranding': 1,    /* Ẩn logo YouTube lớn */
-                        'iv_load_policy': 3     /* Ẩn chú thích (annotations) trong video */
+                        'controls': 0,          /* Ẩn hoàn toàn thanh điều khiển */
+                        'disablekb': 1,         /* Tắt phím tắt bàn phím */
+                        'fs': 0,                /* Tắt nút phóng to */
+                        'modestbranding': 1,    /* Ẩn logo nhỏ */
+                        'iv_load_policy': 3,    /* Ẩn chú thích video */
+                        'rel': 0,               /* Không gợi ý video liên quan khác */
+                        'autoplay': 1           /* Tự động phát */
                     },
                     events: {
                         'onReady': () => { 
