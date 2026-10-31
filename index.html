@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BeListen - Manual Title Edition</title>
+    <title>BeListen - Manual Link Edition</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
@@ -67,8 +67,8 @@
             <h2 id="topicTitleHeader" class="text-xs font-bold uppercase tracking-wider text-emerald-800 mb-1">Danh sách Video - Zootopia:</h2>
             
             <div id="videoListContainer" class="flex flex-col gap-2.5">
-                <!-- Tiêu đề cố định thủ công theo yêu cầu -->
-                <button onclick="startPractice('Zootopia - Judy\'s Hustle (Tax Evasion)', 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQU9tUvOG7EkQzPg5kmFttgYc8v4PoHY_ly0BWxnNpCrRbP4A_CLaK21UTbRYTwVVVbhuqNsALLfQUA/pub?output=csv')" class="bg-white p-3.5 rounded-xl border border-emerald-100 flex items-center justify-between text-left hover:border-emerald-400 hover:bg-emerald-50/30 transition shadow-xs">
+                <!-- Tiêu đề thủ công & gọi trực tiếp Video ID cố định '5qap5aO4i9A' -->
+                <button onclick="startPractice('Zootopia - Judy\'s Hustle (Tax Evasion)', '5qap5aO4i9A', 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQU9tUvOG7EkQzPg5kmFttgYc8v4PoHY_ly0BWxnNpCrRbP4A_CLaK21UTbRYTwVVVbhuqNsALLfQUA/pub?output=csv')" class="bg-white p-3.5 rounded-xl border border-emerald-100 flex items-center justify-between text-left hover:border-emerald-400 hover:bg-emerald-50/30 transition shadow-xs">
                     <div class="flex items-center gap-3">
                         <span class="w-6 h-6 rounded-full bg-emerald-100 text-emerald-800 text-xs font-bold flex items-center justify-center">1</span>
                         <span class="text-xs font-bold text-emerald-950">Zootopia - Judy's Hustle (Tax Evasion)</span>
@@ -142,7 +142,7 @@
 
     <!-- Footer -->
     <footer class="text-center py-4 text-xs text-emerald-600/70 font-medium">
-        BeListen App • Manual Title Edition ✨
+        BeListen App • Manual Link Edition ✨
     </footer>
 
     <!-- YouTube IFrame API -->
@@ -156,9 +156,6 @@
         let isLooping = true;
         let segmentDuration = 7;
         let segmentStart = 0;
-
-        // Lấy link YouTube từ Cột 2 (Index 1) trong Google Sheet, dự phòng link mặc định
-        let currentYouTubeId = "5qap5aO4i9A"; 
 
         function onYouTubeIframeAPIReady() {}
 
@@ -184,44 +181,37 @@
             setView(2);
         }
 
-        // Bắt đầu luyện tập: Lấy Link YouTube (cột 2) và Transcript (cột 3) từ Google Sheet
-        async function startPractice(lessonTitle, csvUrl) {
+        // Bắt đầu luyện tập: Nhận trực tiếp Video ID từ nút bấm và Transcript từ Google Sheet
+        async function startPractice(lessonTitle, videoId, csvUrl) {
             setView(3);
             document.getElementById('currentLessonTitle').innerText = lessonTitle;
+
+            // Load thẳng video YouTube bằng ID truyền vào
+            loadYouTubePlayer(videoId);
 
             try {
                 const res = await fetch(csvUrl);
                 const csvText = await res.text();
-                parseSheetData(csvText);
+                parseTranscriptFromSheet(csvText);
             } catch (e) {
-                currentYouTubeId = "5qap5aO4i9A";
                 transcriptSegments = ["welcome to belisten app practice"];
-                loadYouTubePlayer(currentYouTubeId);
                 updateSegmentUI();
             }
         }
 
-        // Đọc dữ liệu từ Google Sheet: Cột 2 lấy Link YouTube, Cột 3 lấy Transcript
-        function parseSheetData(csvText) {
+        // Chỉ lấy Transcript từ Google Sheet (Cột Transcript)
+        function parseTranscriptFromSheet(csvText) {
             const lines = csvText.split('\n');
             let rawTranscript = "";
-            let foundUrl = "";
 
             for (let i = 1; i < lines.length; i++) {
                 if (!lines[i].trim()) continue;
                 let row = parseCSVLine(lines[i]);
-                if (row.length >= 3) {
-                    if (!foundUrl && row[1]) {
-                        foundUrl = row[1].replace(/^["']|["']$/g, '').trim();
-                    }
-                    if (row[2]) {
-                        rawTranscript += " " + row[2].replace(/^["']|["']$/g, '').trim();
-                    }
+                // Lấy cột thứ 3 (Index 2) làm Transcript
+                if (row.length >= 3 && row[2]) {
+                    rawTranscript += " " + row[2].replace(/^["']|["']$/g, '').trim();
                 }
             }
-
-            currentYouTubeId = extractYouTubeId(foundUrl);
-            loadYouTubePlayer(currentYouTubeId);
 
             if (!rawTranscript.trim()) {
                 rawTranscript = "welcome to practice listening and dictation";
@@ -250,16 +240,6 @@
             return row;
         }
 
-        function extractYouTubeId(url) {
-            if (!url) return "5qap5aO4i9A";
-            if (url.includes("youtu.be/")) {
-                return url.split("youtu.be/")[1].split("?")[0];
-            } else if (url.includes("watch?v=")) {
-                return url.split("watch?v=")[1].split("&")[0];
-            }
-            return url.trim();
-        }
-
         // Tách câu lặp dựa theo dấu gạch đầu dòng (-) hoặc xuống dòng trong Transcript
         function parseTranscriptSegments(rawText) {
             const lines = rawText.split(/[-•\n]+/);
@@ -281,7 +261,7 @@
         }
 
         function loadYouTubePlayer(videoId) {
-            if (!player || typeof player.loadVideoById !== 'function') {
+            if (!player) {
                 player = new YT.Player('player', {
                     videoId: videoId,
                     playerVars: { 'playsinline': 1 },
@@ -290,7 +270,9 @@
                     }
                 });
             } else {
-                player.loadVideoById(videoId);
+                if (typeof player.loadVideoById === 'function') {
+                    player.loadVideoById(videoId);
+                }
             }
             segmentStart = 0;
             isLooping = true;
