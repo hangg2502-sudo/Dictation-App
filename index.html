@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BeListen - Manual Link Edition</title>
+    <title>BeListen - Custom Video & Sheet Transcript</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
@@ -67,8 +67,8 @@
             <h2 id="topicTitleHeader" class="text-xs font-bold uppercase tracking-wider text-emerald-800 mb-1">Danh sách Video - Zootopia:</h2>
             
             <div id="videoListContainer" class="flex flex-col gap-2.5">
-                <!-- Tiêu đề thủ công & gọi trực tiếp Video ID cố định '5qap5aO4i9A' -->
-                <button onclick="startPractice('Zootopia - Judy\'s Hustle (Tax Evasion)', '5qap5aO4i9A', 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQU9tUvOG7EkQzPg5kmFttgYc8v4PoHY_ly0BWxnNpCrRbP4A_CLaK21UTbRYTwVVVbhuqNsALLfQUA/pub?output=csv')" class="bg-white p-3.5 rounded-xl border border-emerald-100 flex items-center justify-between text-left hover:border-emerald-400 hover:bg-emerald-50/30 transition shadow-xs">
+                <!-- Tiêu đề cố định thủ công & gọi thẳng Video ID mới 'J9MKjQ6-UBU' -->
+                <button onclick="startPractice('Zootopia - Judy\'s Hustle (Tax Evasion)', 'J9MKjQ6-UBU', 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQU9tUvOG7EkQzPg5kmFttgYc8v4PoHY_ly0BWxnNpCrRbP4A_CLaK21UTbRYTwVVVbhuqNsALLfQUA/pub?output=csv')" class="bg-white p-3.5 rounded-xl border border-emerald-100 flex items-center justify-between text-left hover:border-emerald-400 hover:bg-emerald-50/30 transition shadow-xs">
                     <div class="flex items-center gap-3">
                         <span class="w-6 h-6 rounded-full bg-emerald-100 text-emerald-800 text-xs font-bold flex items-center justify-center">1</span>
                         <span class="text-xs font-bold text-emerald-950">Zootopia - Judy's Hustle (Tax Evasion)</span>
@@ -142,7 +142,7 @@
 
     <!-- Footer -->
     <footer class="text-center py-4 text-xs text-emerald-600/70 font-medium">
-        BeListen App • Manual Link Edition ✨
+        BeListen App • Custom Video Edition ✨
     </footer>
 
     <!-- YouTube IFrame API -->
@@ -181,12 +181,12 @@
             setView(2);
         }
 
-        // Bắt đầu luyện tập: Nhận trực tiếp Video ID từ nút bấm và Transcript từ Google Sheet
+        // Bắt đầu luyện tập: Nhận trực tiếp Video ID thủ công, chỉ lấy Transcript từ Google Sheet
         async function startPractice(lessonTitle, videoId, csvUrl) {
             setView(3);
             document.getElementById('currentLessonTitle').innerText = lessonTitle;
 
-            // Load thẳng video YouTube bằng ID truyền vào
+            // Load trực tiếp video YouTube bằng ID truyền vào
             loadYouTubePlayer(videoId);
 
             try {
@@ -199,7 +199,7 @@
             }
         }
 
-        // Chỉ lấy Transcript từ Google Sheet (Cột Transcript)
+        // Chỉ lấy nội dung Transcript từ Google Sheet (đọc toàn bộ các dòng)
         function parseTranscriptFromSheet(csvText) {
             const lines = csvText.split('\n');
             let rawTranscript = "";
@@ -207,9 +207,11 @@
             for (let i = 1; i < lines.length; i++) {
                 if (!lines[i].trim()) continue;
                 let row = parseCSVLine(lines[i]);
-                // Lấy cột thứ 3 (Index 2) làm Transcript
-                if (row.length >= 3 && row[2]) {
-                    rawTranscript += " " + row[2].replace(/^["']|["']$/g, '').trim();
+                // Lấy phần text ở cột Transcript
+                for (let cell of row) {
+                    if (cell && cell.length > 2 && !cell.includes("http") && !cell.includes("youtu")) {
+                        rawTranscript += " " + cell.replace(/^["']|["']$/g, '').trim();
+                    }
                 }
             }
 
