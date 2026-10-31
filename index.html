@@ -76,6 +76,20 @@
                 </div>
                 <span class="text-emerald-400 font-bold text-sm">▶</span>
             </button>
+
+            <!-- Chủ đề 3: Moana -->
+            <button onclick="openTopic('Moana')" class="bg-white p-4 rounded-2xl shadow-xs border border-emerald-100 flex items-center justify-between hover:border-emerald-400 hover:shadow-sm transition text-left group">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-cyan-100 flex items-center justify-center text-cyan-700 font-extrabold text-lg">
+                        🌊
+                    </div>
+                    <div>
+                        <h3 class="text-sm font-bold text-emerald-950 group-hover:text-emerald-700">Moana</h3>
+                        <p class="text-[11px] text-emerald-600">Luyện nghe các đoạn hội thoại vui nhộn trong Moana</p>
+                    </div>
+                </div>
+                <span class="text-emerald-400 font-bold text-sm">▶</span>
+            </button>
         </div>
 
         <!-- ================= TRANG 2: DANH SÁCH VIDEO THEO TỪNG CHỦ ĐỀ ================= -->
@@ -83,7 +97,7 @@
             <h2 id="topicTitleHeader" class="text-xs font-bold uppercase tracking-wider text-emerald-800 mb-1">Danh sách Video:</h2>
             
             <div id="videoListContainer" class="flex flex-col gap-2.5">
-                <!-- Danh sách các video nhỏ sẽ tự động nạp từ cơ sở dữ liệu bên dưới -->
+                <!-- Nội dung danh sách video sẽ tự động nạp từ appDatabase -->
             </div>
         </div>
 
@@ -159,7 +173,7 @@
     <script>
         // =========================================================================
         // 🗂️ KHO DỮ LIỆU BÀI HỌC (MODULAR LESSON DATABASE)
-        // Sau này khi muốn thêm video mới, bạn chỉ cần thêm vào danh sách tương ứng ở đây!
+        // Các chủ đề lớn và danh sách video con được phân định rõ ràng tại đây!
         // =========================================================================
         const appDatabase = {
             "Zootopia": {
@@ -172,14 +186,6 @@
                         videoId: "J9MKjQ6-UBU",
                         csvUrl: "https://docs.google.com/spreadsheets/d/e/2PACX-1vQU9tUvOG7EkQzPg5kmFttgYc8v4PoHY_ly0BWxnNpCrRbP4A_CLaK21UTbRYTwVVVbhuqNsALLfQUA/pub?output=csv"
                     }
-                    /* Ví dụ sau này có video số 2, bạn chỉ cần phẩy rồi thêm vào đây:
-                    {
-                        id: 2,
-                        name: "Zootopia - Video 2 Name",
-                        videoId: "MÃ_VIDEO_2",
-                        csvUrl: "LINK_CSV_2"
-                    }
-                    */
                 ]
             },
             "Harry Potter": {
@@ -193,16 +199,19 @@
                         csvUrl: "https://docs.google.com/spreadsheets/d/e/2PACX-1vQTB4HbLMtGm5lxt1CacI1wXGaAyEyhosNtoYJ7KxT6i3E4AYSqWEkZ7SkcMUtprZC1gEyYxS1GYP3j/pub?gid=0&single=true&output=csv"
                     }
                 ]
-            }
-            /* SAU NÀY KHI CÓ THÊM CHỦ ĐỀ MỚI, CHỈ CẦN THÊM VÀO ĐÂY:
-            "Marvel": {
-                title: "Danh sách Video - Marvel:",
-                badgeBg: "bg-red-100 text-red-800",
+            },
+            "Moana": {
+                title: "Danh sách Video - Moana:",
+                badgeBg: "bg-cyan-100 text-cyan-800",
                 videos: [
-                    { id: 1, name: "Avengers Scene", videoId: "...", csvUrl: "..." }
+                    {
+                        id: 1,
+                        name: "Maui có đầu cá mập",
+                        videoId: "KQ9aBDCfS44",
+                        csvUrl: "https://docs.google.com/spreadsheets/d/e/2PACX-1vQTB4HbLMtGm5lxt1CacI1wXGaAyEyhosNtoYJ7KxT6i3E4AYSqWEkZ7SkcMUtprZC1gEyYxS1GYP3j/pub?output=csv"
+                    }
                 ]
             }
-            */
         };
 
         let currentView = 1;
@@ -232,7 +241,6 @@
             else if (currentView === 2) setView(1);
         }
 
-        // Tự động nạp danh sách video phân cấp dựa theo Chủ đề lớn được chọn ở trang 1
         function openTopic(topicName) {
             setView(2);
             const container = document.getElementById('videoListContainer');
@@ -244,7 +252,6 @@
             header.innerText = topicData.title;
             container.innerHTML = "";
 
-            // Duyệt qua từng video con và tự động đánh số thứ tự (1, 2, 3...)
             topicData.videos.forEach(item => {
                 const btnHtml = `
                     <button onclick="startPractice('${item.name}', '${item.videoId}', '${item.csvUrl}')" class="bg-white p-3.5 rounded-xl border border-emerald-100 flex items-center justify-between text-left hover:border-emerald-400 hover:bg-emerald-50/30 transition shadow-xs w-full">
