@@ -27,7 +27,7 @@
         }
     </style>
 </head>
-<body class="min-h-screen flex flex-col justify-between text-emerald-950">
+<body class="min-h-screen flex flex-col justify-between text-emerald-950" onkeydown="handleGlobalKey(event)">
 
     <!-- Header BeListen -->
     <header class="bg-white/85 backdrop-blur-md border-b border-emerald-100 py-4 px-6 text-center shadow-xs sticky top-0 z-10 flex justify-between items-center">
@@ -93,7 +93,7 @@
                         ⏭ Câu tiếp
                     </button>
                 </div>
-                <div id="statusNotice" class="text-center text-[11px] font-semibold text-emerald-700">💡 Gõ đúng 100% để qua câu tiếp theo (hoặc bấm Space để nộp bài nhanh)!</div>
+                <div id="statusNotice" class="text-center text-[11px] font-semibold text-emerald-700">💡 Gõ đúng 100% để qua câu tiếp theo (hoặc bấm Space để Done)!</div>
             </div>
 
             <!-- Khung Nhập Liệu -->
@@ -105,11 +105,10 @@
                     <button onclick="toggleAnswerVisibility()" class="text-xs text-emerald-600 font-bold hover:underline">Xem đáp án & Dịch</button>
                 </div>
                 
-                <!-- Bổ sung sự kiện lắng nghe phím Space -->
-                <textarea id="userInput" rows="3" onkeydown="handleKeyNavigation(event)" class="w-full p-3 border border-emerald-200 rounded-xl text-sm bg-emerald-50/20 focus:outline-none focus:border-emerald-500 resize-none text-emerald-950" placeholder="Nhập câu tiếng Anh nghe được vào đây (bấm Space để Done)..."></textarea>
+                <textarea id="userInput" rows="3" class="w-full p-3 border border-emerald-200 rounded-xl text-sm bg-emerald-50/20 focus:outline-none focus:border-emerald-500 resize-none text-emerald-950" placeholder="Nhập câu tiếng Anh nghe được vào đây..."></textarea>
                 
                 <button onclick="checkResult()" class="mt-3 text-white py-2.5 rounded-xl text-sm font-extrabold shadow-md hover:bg-emerald-700 transition" style="background-color: #059669;">
-                    Done (Kiểm Tra & Nộp bài) ✓ [Phím Space]
+                    Done (Kiểm Tra & Nộp bài) ✓ [Bấm Space]
                 </button>
             </div>
 
@@ -199,9 +198,12 @@
                 
                 let row = parseCSVLine(lines[i]);
                 if (row.length >= 3) {
-                    let title = row[0].replace(/^["']|["']$/g, '').trim();       // Cột Tiêu đề
-                    let rawUrl = row[1].replace(/^["']|["']$/g, '').trim();      // Cột Link Youtube
-                    let rawTranscript = row[2].replace(/^["']|["']$/g, '').trim();// Cột Transcript
+                    // Cột 1 (Index 0): Tiêu đề bài học hiển thị ở trang 2
+                    let title = row[0].replace(/^["']|["']$/g, '').trim();       
+                    // Cột 2 (Index 1): Link YouTube
+                    let rawUrl = row[1].replace(/^["']|["']$/g, '').trim();      
+                    // Cột 3 (Index 2): Transcript
+                    let rawTranscript = row[2].replace(/^["']|["']$/g, '').trim();
 
                     let videoId = extractYouTubeId(rawUrl);
 
@@ -249,14 +251,14 @@
             container.innerHTML = "";
 
             if (lessonsData.length === 0) {
-                container.innerHTML = `<div class="text-center py-4 text-xs text-emerald-600">Chưa có bài học nào hoặc cấu trúc 3 sheet chưa khớp.</div>`;
+                container.innerHTML = `<div class="text-center py-4 text-xs text-emerald-600">Chưa có bài học nào hoặc dữ liệu sheet chưa đúng.</div>`;
                 return;
             }
 
             lessonsData.forEach((item, index) => {
                 const btn = document.createElement('button');
                 btn.className = "bg-white p-3.5 rounded-xl border border-emerald-100 flex items-center justify-between text-left hover:border-emerald-400 hover:bg-emerald-50/30 transition shadow-xs";
-                // Hiển thị tên tiêu đề chuẩn từ sheet Tiêu đề
+                // Ép hiển thị đúng Tiêu đề chuẩn từ sheet Tiêu đề
                 btn.innerHTML = `
                     <div class="flex items-center gap-3">
                         <span class="w-6 h-6 rounded-full bg-emerald-100 text-emerald-800 text-xs font-bold flex items-center justify-center">${index + 1}</span>
@@ -282,7 +284,6 @@
             updateSegmentUI();
         }
 
-        // Ngắt đoạn lặp theo từng gạch đầu dòng (-) hoặc xuống dòng
         function parseTranscriptSegments(rawText) {
             const lines = rawText.split(/[-•\n]+/);
             transcriptSegments = lines
@@ -338,7 +339,7 @@
             if (currentSegmentIndex < transcriptSegments.length - 1) {
                 currentSegmentIndex++;
             } else {
-                currentSegmentIndex = 0; // Vòng lại câu đầu nếu hết bài
+                currentSegmentIndex = 0;
             }
             
             updateSegmentUI();
@@ -365,11 +366,15 @@
             }, 400);
         }
 
-        // Lắng nghe phím Space để bấm Done nhanh
-        function handleKeyNavigation(event) {
-            if (event.code === 'Space') {
-                event.preventDefault(); // Ngăn ô textarea tự động nhảy dấu cách thừa nếu muốn, hoặc cho phép gõ bình thường. Tốt nhất là chặn mặc định khi submit để gọi checkResult ngay.
-                checkResult();
+        // Bắt sự kiện toàn cục cho phím Space để gọi nút Done
+        function handleGlobalKey(event) {
+            if (event.code === 'Space' && currentView === 3) {
+                // Chỉ kích hoạt khi đang ở màn hình luyện tập và không gõ trong các input khác
+                const activeEl = document.activeElement;
+                if (activeEl && activeEl.id === 'userInput') {
+                    event.preventDefault(); // Ngăn dấu cách thừa trong textarea
+                    checkResult();
+                }
             }
         }
 
@@ -452,13 +457,13 @@
                     const btn = document.getElementById('loopBtn');
                     btn.innerText = "🔁 Bật Lặp Câu (Auto)";
                     btn.style.backgroundColor = "#059669";
-                    notice.innerHTML = "✅ <span class='text-emerald-700 font-bold'>Chính xác 100%!</span> Mở khóa thành công. Bấm <span class='text-emerald-600 font-bold'>[⏭ Câu tiếp]</span> để qua câu tiếp theo!";
+                    notice.innerHTML = "✅ <span class='text-emerald-700 font-bold'>Chính xác 100%!</span> Mở khóa thành công. Bấm <span class='text-emerald-600 font-bold'>[⏭ Câu tiếp]</span> hoặc chuyển đoạn mới!";
                 } else {
                     isLooping = true;
                     const btn = document.getElementById('loopBtn');
                     btn.innerText = "🛑 Tắt Lặp Câu (Đang Bật)";
                     btn.style.backgroundColor = "#047857";
-                    notice.innerHTML = "❌ <span class='text-red-600 font-bold'>Chưa chính xác (" + accuracy + "%).</span> Vẫn tiếp tục lặp lại câu này để bạn gõ lại!";
+                    notice.innerHTML = "❌ <span class='text-red-600 font-bold'>Chưa chính xác (" + accuracy + "%).</span> Vẫn tiếp tục lặp lại câu này!";
                 }
             }
         }
