@@ -291,4 +291,211 @@
                 return;
             }
 
-            document
+            document.getElementById('currentSegmentIdx').innerText = currentSegmentIndex + 1;
+            document.getElementById('totalSegmentsIdx').innerText = transcriptSegments.length;
+            document.getElementById('userInput').value = "";
+            document.getElementById('resultContainer').classList.add('hidden');
+            document.getElementById('statusNotice').innerText = "💡 Đang lặp đúng mốc thời gian: Gõ đúng 100% để qua câu tiếp theo!";
+
+            if (player && typeof player.seekTo === 'function' && seg) {
+                segmentStart = seg.startTime;
+                segmentEnd = seg.endTime;
+                player.seekTo(segmentStart, true);
+                player.playVideo();
+                isLooping = true;
+                const btn = document.getElementById('loopBtn');
+                btn.innerText = "🛑 Tắt Lặp Câu (Đang Bật)";
+                btn.style.backgroundColor = "#047857";
+            }
+        }
+
+        function loadYouTubePlayer(videoId) {
+            if (!player) {
+                player = new YT.Player('player', {
+                    videoId: videoId,
+                    playerVars: { 'playsinline': 1 },
+                    events: {
+                        'onReady': () => { 
+                            startLoopTracker(); 
+                            if (transcriptSegments.length > 0) {
+                                segmentStart = transcriptSegments[0].startTime;
+                                segmentEnd = transcriptSegments[0].endTime;
+                                player.seekTo(segmentStart, true);
+                            }
+                        }
+                    }
+                });
+            } else {
+                if (typeof player.loadVideoById === 'function') {
+                    player.loadVideoById(videoId);
+                }
+            }
+            isLooping = true;
+        }
+
+        function toggleLoopSegment() {
+            isLooping = !isLooping;
+            const btn = document.getElementById('loopBtn');
+            const notice = document.getElementById('statusNotice');
+            if (isLooping) {
+                btn.innerText = "🛑 Tắt Lặp Câu (Đang Bật)";
+                btn.style.backgroundColor = "#047857";
+                notice.innerText = "💡 Đang khóa lặp mốc thời gian câu hiện tại!";
+                let seg = transcriptSegments[currentSegmentIndex];
+                if (seg) {
+                    segmentStart = seg.startTime;
+                    segmentEnd = seg.endTime;
+                }
+                if (player && typeof player.getCurrentTime === 'function') {
+                    player.seekTo(segmentStart, true);
+                }
+            } else {
+                btn.innerText = "🔁 Bật Lặp Câu (Auto)";
+                btn.style.backgroundColor = "#059669";
+                notice.innerText = "⚠️ Đã tắt lặp tự động.";
+            }
+        }
+
+        function nextSegment() {
+            if (currentSegmentIndex < transcriptSegments.length - 1) {
+                currentSegmentIndex++;
+            } else {
+                currentSegmentIndex = 0;
+            }
+            updateSegmentUI();
+        }
+
+        function startLoopTracker() {
+            setInterval(() => {
+                if (player && typeof player.getPlayerState === 'function' && player.getPlayerState() === YT.PlayerState.PLAYING) {
+                    let currentTime = player.getCurrentTime();
+                    let seg = transcriptSegments[currentSegmentIndex];
+                    if (seg) {
+                        segmentStart = seg.startTime;
+                        segmentEnd = seg.endTime;
+                        
+                        if (seg.isSilent) {
+                            if (currentTime >= segmentEnd) {
+                                nextSegment();
+                            }
+                            return;
+                        }
+                    }
+                    
+                    if (isLooping && segmentEnd > segmentStart && currentTime >= segmentEnd) {
+                        player.seekTo(segmentStart, true);
+                    }
+                }
+            }, 300);
+        }
+
+        function handleTextareaKey(event) {
+            if (event.code === 'Enter' || event.key === 'Enter') {
+                event.preventDefault();
+                checkResult();
+            }
+        }
+
+        function cleanText(text) {
+            return text
+                .toLowerCase()
+                .replace(/[-•]/g, "")
+                .replace(/[.,/#!$%^&*;:{}=\-_`~()?"']/g, "")
+                .replace(/\s+/g, " ")
+                .trim();
+        }
+
+        async function translateSegmentText(text) {
+            try {
+                const res = await fetch(`https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=vi&dt=t&q=${encodeURIComponent(text)}`);
+                const data = await res.json();
+                let translatedString = "";
+                if (data && data[0]) {
+                    data[0].forEach(item => {
+                        if (item[0]) translatedString += item[0];
+                    });
+                }
+                return translatedString || "Đang dịch tự động...";
+            } catch (e) {
+                return "Bản dịch tiếng Việt tự động.";
+            }
+        }
+
+        function toggleAnswerVisibility() {
+            const container = document.getElementById('resultContainer');
+            if (container.classList.contains('hidden')) {
+                showResults(false);
+            } else {
+                container.classList.add('hidden');
+            }
+        }
+
+        async function checkResult() {
+            await showResults(true);
+        }
+
+        async function showResults(isSubmitting) {
+            const container = document.getElementById('resultContainer');
+            const diffOutput = document.getElementById('diffOutput');
+            const scoreText = document.getElementById('scoreText');
+            const translateOutput = document.getElementById('translateOutput');
+            const notice = document.getElementById('statusNotice');
+
+            let seg = transcriptSegments[currentSegmentIndex] || { text: "" };
+            let currentRawSegment = seg.text;
+
+            if (seg.isSilent) {
+                diffOutput.innerText = "(Đoạn chuyển cảnh / Không thoại)";
+                scoreText.innerText = "";
+                translateOutput.innerText = "(Khoảng lặng)";
+                container.classList.remove('hidden');
+                return;
+            }
+
+            let targetClean = cleanText(currentRawSegment);
+            let userClean = cleanText(document.getElementById('userInput').value);
+
+            const originalWords = targetClean.split(' ').filter(w => w.length > 0);
+            const userWords = userClean.split(' ').filter(w => w.length > 0);
+
+            let matchCount = 0;
+            originalWords.forEach((word, i) => {
+                if (userWords[i] === word) {
+                    matchCount++;
+                }
+            });
+
+            let accuracy = originalWords.length > 0 ? Math.round((matchCount / originalWords.length) * 100) : 0;
+            
+            diffOutput.innerText = currentRawSegment;
+            scoreText.innerText = `Độ chính xác: ${accuracy}% (Từ đúng: ${matchCount}/${originalWords.length})`;
+
+            container.classList.remove('hidden');
+            translateOutput.innerText = "Đang dịch tự động câu hiện tại...";
+            
+            let translated = await translateSegmentText(currentRawSegment);
+            translateOutput.innerText = translated;
+
+            if (isSubmitting) {
+                if (accuracy === 100) {
+                    isLooping = false;
+                    const btn = document.getElementById('loopBtn');
+                    btn.innerText = "🔁 Bật Lặp Câu (Auto)";
+                    btn.style.backgroundColor = "#059669";
+                    notice.innerHTML = "✅ <span class='text-emerald-700 font-bold'>Chính xác 100%!</span> Đã mở khóa. Bấm <span class='text-emerald-600 font-bold'>[⏭ Câu tiếp]</span> hoặc bấm Enter để sang đoạn tiếp theo!";
+                    
+                    setTimeout(() => {
+                        if (currentView === 3) nextSegment();
+                    }, 800);
+                } else {
+                    isLooping = true;
+                    const btn = document.getElementById('loopBtn');
+                    btn.innerText = "🛑 Tắt Lặp Câu (Đang Bật)";
+                    btn.style.backgroundColor = "#047857";
+                    notice.innerHTML = "❌ <span class='text-red-600 font-bold'>Chưa chính xác (" + accuracy + "%).</span> Vẫn tiếp tục lặp lại mốc thời gian này!";
+                }
+            }
+        }
+    </script>
+</body>
+</html>
