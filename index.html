@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BeListen - Standard Edition</title>
+    <title>BeListen - Modular Lesson Database Edition</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
@@ -45,7 +45,7 @@
     <!-- Main Content -->
     <main class="max-w-md w-full mx-auto p-4 flex-1 flex flex-col gap-4">
 
-        <!-- ================= TRANG 1: DANH SÁCH CHỦ ĐỀ ================= -->
+        <!-- ================= TRANG 1: DANH SÁCH CHỦ ĐỀ LỚN ================= -->
         <div id="viewTopics" class="flex flex-col gap-3">
             <h2 class="text-xs font-bold uppercase tracking-wider text-emerald-800 mb-1">Chủ đề bài học:</h2>
             
@@ -78,12 +78,12 @@
             </button>
         </div>
 
-        <!-- ================= TRANG 2: DANH SÁCH VIDEO CỐ ĐỊNH ================= -->
+        <!-- ================= TRANG 2: DANH SÁCH VIDEO THEO TỪNG CHỦ ĐỀ ================= -->
         <div id="viewVideos" class="hidden flex flex-col gap-3">
             <h2 id="topicTitleHeader" class="text-xs font-bold uppercase tracking-wider text-emerald-800 mb-1">Danh sách Video:</h2>
             
             <div id="videoListContainer" class="flex flex-col gap-2.5">
-                <!-- Nội dung danh sách video sẽ tự nạp theo chủ đề được chọn -->
+                <!-- Danh sách các video nhỏ sẽ tự động nạp từ cơ sở dữ liệu bên dưới -->
             </div>
         </div>
 
@@ -157,6 +157,54 @@
     <!-- YouTube IFrame API -->
     <script src="https://www.youtube.com/iframe_api"></script>
     <script>
+        // =========================================================================
+        // 🗂️ KHO DỮ LIỆU BÀI HỌC (MODULAR LESSON DATABASE)
+        // Sau này khi muốn thêm video mới, bạn chỉ cần thêm vào danh sách tương ứng ở đây!
+        // =========================================================================
+        const appDatabase = {
+            "Zootopia": {
+                title: "Danh sách Video - Zootopia:",
+                badgeBg: "bg-emerald-100 text-emerald-800",
+                videos: [
+                    {
+                        id: 1,
+                        name: "Zootopia - Judy's Hustle (Tax Evasion)",
+                        videoId: "J9MKjQ6-UBU",
+                        csvUrl: "https://docs.google.com/spreadsheets/d/e/2PACX-1vQU9tUvOG7EkQzPg5kmFttgYc8v4PoHY_ly0BWxnNpCrRbP4A_CLaK21UTbRYTwVVVbhuqNsALLfQUA/pub?output=csv"
+                    }
+                    /* Ví dụ sau này có video số 2, bạn chỉ cần phẩy rồi thêm vào đây:
+                    {
+                        id: 2,
+                        name: "Zootopia - Video 2 Name",
+                        videoId: "MÃ_VIDEO_2",
+                        csvUrl: "LINK_CSV_2"
+                    }
+                    */
+                ]
+            },
+            "Harry Potter": {
+                title: "Danh sách Video - Harry Potter:",
+                badgeBg: "bg-amber-100 text-amber-800",
+                videos: [
+                    {
+                        id: 1,
+                        name: "Nón phân loại - Harry Potter 1",
+                        videoId: "z4K2F_OALPQ",
+                        csvUrl: "https://docs.google.com/spreadsheets/d/e/2PACX-1vQTB4HbLMtGm5lxt1CacI1wXGaAyEyhosNtoYJ7KxT6i3E4AYSqWEkZ7SkcMUtprZC1gEyYxS1GYP3j/pub?gid=0&single=true&output=csv"
+                    }
+                ]
+            }
+            /* SAU NÀY KHI CÓ THÊM CHỦ ĐỀ MỚI, CHỈ CẦN THÊM VÀO ĐÂY:
+            "Marvel": {
+                title: "Danh sách Video - Marvel:",
+                badgeBg: "bg-red-100 text-red-800",
+                videos: [
+                    { id: 1, name: "Avengers Scene", videoId: "...", csvUrl: "..." }
+                ]
+            }
+            */
+        };
+
         let currentView = 1;
         let transcriptSegments = []; 
         let currentSegmentIndex = 0;
@@ -184,34 +232,31 @@
             else if (currentView === 2) setView(1);
         }
 
+        // Tự động nạp danh sách video phân cấp dựa theo Chủ đề lớn được chọn ở trang 1
         function openTopic(topicName) {
             setView(2);
             const container = document.getElementById('videoListContainer');
             const header = document.getElementById('topicTitleHeader');
             
-            if (topicName === 'Zootopia') {
-                header.innerText = "Danh sách Video - Zootopia:";
-                container.innerHTML = `
-                    <button onclick="startPractice('Zootopia - Judy\'s Hustle (Tax Evasion)', 'J9MKjQ6-UBU', 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQU9tUvOG7EkQzPg5kmFttgYc8v4PoHY_ly0BWxnNpCrRbP4A_CLaK21UTbRYTwVVVbhuqNsALLfQUA/pub?output=csv')" class="bg-white p-3.5 rounded-xl border border-emerald-100 flex items-center justify-between text-left hover:border-emerald-400 hover:bg-emerald-50/30 transition shadow-xs w-full">
+            const topicData = appDatabase[topicName];
+            if (!topicData) return;
+
+            header.innerText = topicData.title;
+            container.innerHTML = "";
+
+            // Duyệt qua từng video con và tự động đánh số thứ tự (1, 2, 3...)
+            topicData.videos.forEach(item => {
+                const btnHtml = `
+                    <button onclick="startPractice('${item.name}', '${item.videoId}', '${item.csvUrl}')" class="bg-white p-3.5 rounded-xl border border-emerald-100 flex items-center justify-between text-left hover:border-emerald-400 hover:bg-emerald-50/30 transition shadow-xs w-full">
                         <div class="flex items-center gap-3">
-                            <span class="w-6 h-6 rounded-full bg-emerald-100 text-emerald-800 text-xs font-bold flex items-center justify-center">1</span>
-                            <span class="text-xs font-bold text-emerald-950">Zootopia - Judy's Hustle (Tax Evasion)</span>
+                            <span class="w-6 h-6 rounded-full ${topicData.badgeBg} text-xs font-bold flex items-center justify-center">${item.id}</span>
+                            <span class="text-xs font-bold text-emerald-950">${item.name}</span>
                         </div>
                         <span class="text-xs text-emerald-600 font-bold">Học ngay ➔</span>
                     </button>
                 `;
-            } else if (topicName === 'Harry Potter') {
-                header.innerText = "Nón phân loại - Harry Potter 1";
-                container.innerHTML = `
-                    <button onclick="startPractice('Nón phân loại - Harry Potter 1', 'z4K2F_OALPQ', 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQTB4HbLMtGm5lxt1CacI1wXGaAyEyhosNtoYJ7KxT6i3E4AYSqWEkZ7SkcMUtprZC1gEyYxS1GYP3j/pub?gid=0&single=true&output=csv')" class="bg-white p-3.5 rounded-xl border border-emerald-100 flex items-center justify-between text-left hover:border-emerald-400 hover:bg-emerald-50/30 transition shadow-xs w-full">
-                        <div class="flex items-center gap-3">
-                            <span class="w-6 h-6 rounded-full bg-amber-100 text-amber-800 text-xs font-bold flex items-center justify-center">1</span>
-                            <span class="text-xs font-bold text-emerald-950">Nón phân loại - Harry Potter 1</span>
-                        </div>
-                        <span class="text-xs text-emerald-600 font-bold">Học ngay ➔</span>
-                    </button>
-                `;
-            }
+                container.innerHTML += btnHtml;
+            });
         }
 
         async function startPractice(lessonTitle, videoId, csvUrl) {
