@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BeListen - Custom Edition</title>
+    <title>BeListen - Final Custom Edition</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
@@ -36,7 +36,7 @@
         </button>
         <div class="flex-1 text-center">
             <h1 class="text-2xl font-extrabold tracking-wide" style="color: #047857;">BeListen</h1>
-            <p id="headerSubtitle" class="text-xs text-emerald-600 font-semibold">Chọn chủ đề học tập bên dưới</p>
+            <p id="headerSubtitle" class="text-xs text-emerald-600 font-semibold">Nghe Nghe Nghe thì mới nghe tốt !!!</p>
         </div>
         <div class="w-12"></div>
     </header>
@@ -111,8 +111,9 @@
                 
                 <textarea id="userInput" rows="3" onkeydown="handleTextareaKey(event)" class="w-full p-3 border border-emerald-200 rounded-xl text-sm bg-emerald-50/20 focus:outline-none focus:border-emerald-500 resize-none text-emerald-950" placeholder="Nhập câu tiếng Anh nghe được vào đây (bấm Enter để Check)..."></textarea>
                 
+                <!-- Đã lược bỏ chữ [ Bấm Enter] theo yêu cầu -->
                 <button onclick="checkResult()" class="mt-3 text-white py-2.5 rounded-xl text-sm font-extrabold shadow-md hover:bg-emerald-700 transition" style="background-color: #059669;">
-                    Check ✓ [Bấm Enter]
+                    Check ✓
                 </button>
             </div>
 
@@ -166,9 +167,8 @@
             document.getElementById('backBtn').classList.toggle('hidden', viewNum === 1);
 
             const subtitle = document.getElementById('headerSubtitle');
-            if (viewNum === 1) subtitle.innerText = "Chọn chủ đề học tập bên dưới";
-            else if (viewNum === 2) subtitle.innerText = "Chọn video luyện nghe";
-            else if (viewNum === 3) subtitle.innerText = "Nghe Nghe Nghe thì mới nghe tốt !!!";
+            // Đồng bộ subtitle cố định "Nghe Nghe Nghe thì mới nghe tốt !!!" cho cả 3 trang hoặc tùy theo ý muốn
+            subtitle.innerText = "Nghe Nghe Nghe thì mới nghe tốt !!!";
         }
 
         function goBack() {
