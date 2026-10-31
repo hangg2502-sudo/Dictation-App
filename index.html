@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BeListen - Normal Text Answer</title>
+    <title>BeListen - Precise Segment Translation</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
@@ -123,7 +123,6 @@
                         <h3 class="text-xs font-bold uppercase tracking-wider" style="color: #047857;">ĐÁP ÁN TRANSCRIPT CHUẨN (TỪ GOOGLE SHEET):</h3>
                         <span class="text-[10px] bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full font-bold">📊 Chấm tự động</span>
                     </div>
-                    <!-- Hiển thị văn bản bình thường, sạch sẽ -->
                     <div id="diffOutput" class="text-sm font-medium p-3 rounded-xl border border-emerald-100 text-emerald-950" style="background-color: #ecfdf5;"></div>
                     <div id="scoreText" class="text-xs font-bold mt-1 text-emerald-700"></div>
                 </div>
@@ -142,7 +141,7 @@
 
     <!-- Footer -->
     <footer class="text-center py-4 text-xs text-emerald-600/70 font-medium">
-        BeListen App • Normal Text Answer ✨
+        BeListen App • Precise Segment Translation ✨
     </footer>
 
     <!-- YouTube IFrame API -->
@@ -348,11 +347,18 @@
                 .trim();
         }
 
-        async function translateText(text) {
+        // Hàm dịch gọi trực tiếp chính xác văn bản của đúng segment hiện tại
+        async function translateSegmentText(text) {
             try {
                 const res = await fetch(`https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=vi&dt=t&q=${encodeURIComponent(text)}`);
-                    const data = await res.json();
-                return data[0][0][0];
+                const data = await res.json();
+                let translatedString = "";
+                if (data && data[0]) {
+                    data[0].forEach(item => {
+                        if (item[0]) translatedString += item[0];
+                    });
+                }
+                return translatedString || "Đang dịch tự động...";
             } catch (e) {
                 return "Bản dịch tiếng Việt tự động.";
             }
@@ -378,6 +384,7 @@
             const translateOutput = document.getElementById('translateOutput');
             const notice = document.getElementById('statusNotice');
 
+            // Lấy chính xác câu của segment hiện tại
             let seg = transcriptSegments[currentSegmentIndex] || { text: "" };
             let currentRawSegment = seg.text;
             let targetClean = cleanText(currentRawSegment);
@@ -395,13 +402,15 @@
 
             let accuracy = originalWords.length > 0 ? Math.round((matchCount / originalWords.length) * 100) : 0;
             
-            // Hiển thị câu chuẩn một cách bình thường, rõ ràng
+            // Hiển thị chuẩn câu hiện tại
             diffOutput.innerText = currentRawSegment;
             scoreText.innerText = `Độ chính xác: ${accuracy}% (Từ đúng: ${matchCount}/${originalWords.length})`;
 
             container.classList.remove('hidden');
             translateOutput.innerText = "Đang dịch tự động câu hiện tại...";
-            let translated = await translateText(currentRawSegment);
+            
+            // Gọi dịch chuẩn xác theo đúng nội dung của segment hiện tại
+            let translated = await translateSegmentText(currentRawSegment);
             translateOutput.innerText = translated;
 
             if (isSubmitting) {
