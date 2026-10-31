@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BeListen - Clean & Sync Transcript</title>
+    <title>BeListen - Single Answer Edition</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
@@ -141,7 +141,7 @@
 
     <!-- Footer -->
     <footer class="text-center py-4 text-xs text-emerald-600/70 font-medium">
-        BeListen App • Clean & Sync Edition ✨
+        BeListen App • Single Answer Edition ✨
     </footer>
 
     <!-- YouTube IFrame API -->
@@ -207,7 +207,6 @@
             return 0;
         }
 
-        // Đọc dữ liệu từ Google Sheet, đảm bảo bóc tách sạch sẽ từng dòng không bị lặp
         function parseTranscriptFromSheet(csvText) {
             const rawLines = csvText.split(/\r?\n/);
             transcriptSegments = [];
@@ -215,7 +214,6 @@
             rawLines.forEach(line => {
                 if (!line.trim()) return;
                 
-                // Xử lý từng dòng được ngăn cách bởi dấu xuống dòng hoặc phân tách CSV
                 let match = line.match(/\[\s*([\d:]+)\s*-\s*([\d:]+)\s*\]\s*-?\s*(.*)/);
                 if (match) {
                     let startTime = parseTimeToSeconds(match[1]);
@@ -232,7 +230,6 @@
                 }
             });
 
-            // Fallback nếu không quét được dòng nào
             if (transcriptSegments.length === 0) {
                 transcriptSegments = [{ startTime: 0, endTime: 6, text: "welcome to practice listening and dictation" }];
             }
@@ -410,20 +407,14 @@
             let accuracy = originalWords.length > 0 ? Math.round((matchCount / originalWords.length) * 100) : 0;
             scoreText.innerText = `Độ chính xác: ${accuracy}% (Từ đúng: ${matchCount}/${originalWords.length})`;
 
-            // HIỂN THỊ TỪNG CÂU SẠCH SẼ (KHÔNG MỐC THỜI GIAN) CHO KHUNG XEM ĐÁP ÁN
-            let fullTranscriptHtml = "<div class='flex flex-col gap-1.5'>";
-            transcriptSegments.forEach((item, idx) => {
-                let isCurrent = idx === currentSegmentIndex;
-                let highlightStyle = isCurrent ? "background-color: #d1fae5; font-weight: bold; border-left: 3px solid #059669; padding-left: 6px;" : "opacity: 0.85;";
-                fullTranscriptHtml += `<div style="${highlightStyle}" class="text-xs py-1 rounded">${item.text}</div>`;
-            });
-            fullTranscriptHtml += "</div>";
-            diffOutput.innerHTML = fullTranscriptHtml;
-
-            container.classList.remove('hidden');
-            translateOutput.innerText = "Đang dịch tự động câu hiện tại...";
+            // HIỂN THỊ ĐÚNG DUY NHẤT CÂU HIỆN TẠI (CHẤM LỖI TỪNG TỪ SO VỚI CÂU NÀY)
+            // Phần so sánh chi tiết (`diffOutput`) đã hiển thị sẵn kết quả check lỗi ở trên. 
+            // Dòng dưới đây hiển thị câu đáp án chuẩn thuần túy để bạn dễ nhìn:
+            document.getElementById('translateOutput').innerText = "Đang dịch tự động câu hiện tại...";
             let translated = await translateText(currentRawSegment);
             translateOutput.innerText = translated;
+
+            container.classList.remove('hidden');
 
             if (isSubmitting) {
                 if (accuracy === 100) {
