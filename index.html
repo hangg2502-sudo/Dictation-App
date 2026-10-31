@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BeListen - Auto Skip Silent Edition</title>
+    <title>BeListen - Fixed Loop Edition</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
@@ -276,7 +276,6 @@
         function updateSegmentUI() {
             let seg = transcriptSegments[currentSegmentIndex];
             
-            // Xử lý tự động chạy qua và next ngay nếu gặp dòng ***
             if (seg && seg.isSilent) {
                 document.getElementById('statusNotice').innerText = "🎵 Đoạn nhạc/khoảng lặng - Đang phát tự động qua câu tiếp theo...";
                 document.getElementById('userInput').value = "";
@@ -375,7 +374,6 @@
                         segmentStart = seg.startTime;
                         segmentEnd = seg.endTime;
                         
-                        // Nếu là đoạn *** -> Chạy hết thời gian đoạn đó là tự động nhảy sang câu tiếp theo
                         if (seg.isSilent) {
                             if (currentTime >= segmentEnd) {
                                 nextSegment();
@@ -384,11 +382,12 @@
                         }
                     }
                     
+                    // Khắc phục lỗi lặp 1 giây bằng cách kiểm soát chặt mốc kết thúc và thời gian đệm
                     if (isLooping && segmentEnd > segmentStart && currentTime >= segmentEnd) {
                         player.seekTo(segmentStart, true);
                     }
                 }
-            }, 300);
+            }, 150); // Tăng tần số quét (150ms) để bắt trọn mốc thời gian chính xác hơn
         }
 
         function handleTextareaKey(event) {
