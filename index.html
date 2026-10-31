@@ -1,14 +1,9 @@
-Tôi đã sửa lại hoàn toàn logic ở trang 2 cho chủ đề **Zootopia**. Bây giờ khi bạn bấm vào video trong danh sách của Zootopia ở trang 2, ứng dụng sẽ gọi trực tiếp hàm mở trang 3, nạp đúng mã video `J9MKjQ6-UBU` và file CSV chuẩn y hệt như bản gốc Harry Potter mà bạn mong muốn.
-
-Bạn hãy copy toàn bộ đoạn mã `index.html` hoàn chỉnh dưới đây, dán đè vào file trên GitHub và bấm **Commit changes** nhé:
-
-```html
 <!DOCTYPE html>
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BeListen - Final Fixed Edition</title>
+    <title>BeListen - Fixed View Switcher</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
@@ -29,7 +24,7 @@ Bạn hãy copy toàn bộ đoạn mã `index.html` hoàn chỉnh dưới đây,
             left: 0;
             width: 100%;
             height: 100%;
-            pointer-events: none;
+            pointer-events: none; /* Khóa tương tác trực tiếp trên video an toàn */
         }
     </style>
 </head>
@@ -515,5 +510,3 @@ Bạn hãy copy toàn bộ đoạn mã `index.html` hoàn chỉnh dưới đây,
     </script>
 </body>
 </html>
-
-```
