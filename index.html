@@ -3,184 +3,302 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BeListen - Live YouTube Transcript</title>
+    <title>BeListen - Theme-Based Learning</title>
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         body { background-color: #f4faf5; }
         .correct { color: #065f46; background-color: #a7f3d0; padding: 0 2px; border-radius: 4px; font-weight: bold; }
         .incorrect { color: #991b1b; background-color: #fecaca; text-decoration: line-through; padding: 0 2px; border-radius: 4px; }
-        .video-container { position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden; border-radius: 16px; }
-        .video-container iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
+        
+        .video-container {
+            position: relative;
+            padding-bottom: 56.25%;
+            height: 0;
+            overflow: hidden;
+            border-radius: 16px;
+        }
+        .video-container iframe {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
     </style>
 </head>
 <body class="min-h-screen flex flex-col justify-between text-emerald-950">
 
-    <header class="bg-white/85 backdrop-blur-md border-b border-emerald-100 py-4 px-6 text-center shadow-xs sticky top-0 z-10">
-        <h1 class="text-2xl font-extrabold tracking-wide" style="color: #047857;">BeListen</h1>
-        <p class="text-xs text-emerald-600 mt-1 font-semibold">Luyện tập nhiều hơn mỗi ngày, thành quả đang đến rồi đó!</p>
+    <!-- Header BeListen -->
+    <header class="bg-white/85 backdrop-blur-md border-b border-emerald-100 py-4 px-6 text-center shadow-xs sticky top-0 z-10 flex justify-between items-center">
+        <button id="backBtn" onclick="goBack()" class="hidden text-xs font-bold text-emerald-700 bg-emerald-100 hover:bg-emerald-200 px-3 py-1.5 rounded-lg transition">
+            ⬅ Quay lại
+        </button>
+        <div class="flex-1 text-center">
+            <h1 class="text-2xl font-extrabold tracking-wide" style="color: #047857;">BeListen</h1>
+            <p id="headerSubtitle" class="text-xs text-emerald-600 font-semibold">Chọn chủ đề học tập bên dưới</p>
+        </div>
+        <div class="w-12"></div> <!-- Spacer balance -->
     </header>
 
+    <!-- Main Content -->
     <main class="max-w-md w-full mx-auto p-4 flex-1 flex flex-col gap-4">
-        
-        <div class="bg-white p-4 rounded-2xl shadow-xs border border-emerald-100 flex flex-col gap-3">
-            <div>
-                <label class="block text-xs font-bold mb-1 text-emerald-700 uppercase tracking-wider">Chọn video luyện nghe:</label>
-                <select id="lessonSelect" onchange="changeLesson()" class="w-full p-2.5 border border-emerald-200 rounded-xl text-sm bg-emerald-50/50 text-emerald-900 focus:outline-none focus:border-emerald-500">
-                    <option value="5qap5aO4i9A">Bài 1: Lofi English Practice</option>
-                    <option value="kJQP7kiw5Fk">Bài 2: Daily Conversation Practice</option>
-                </select>
-            </div>
 
-            <div>
-                <label class="block text-xs font-bold mb-1 text-emerald-600 uppercase tracking-wider">Hoặc dán link YouTube cá nhân:</label>
-                <div class="flex gap-2">
-                    <input type="text" id="customUrlInput" placeholder="Dán link YT (vd: https://youtu.be/...)" class="w-full p-2.5 border border-emerald-200 rounded-xl text-xs bg-emerald-50/30 focus:outline-none focus:border-emerald-400">
-                    <button onclick="loadCustomVideo()" class="text-white px-4 py-2.5 rounded-xl text-xs font-bold shadow-xs hover:bg-emerald-600 transition" style="background-color: #10b981;">Tải</button>
+        <!-- ================= TRANG 1: DANH SÁCH CHỦ ĐỀ ================= -->
+        <div id="viewTopics" class="flex flex-col gap-3">
+            <h2 class="text-xs font-bold uppercase tracking-wider text-emerald-800 mb-1">Chủ đề bài học:</h2>
+            
+            <!-- Thẻ Chủ đề Zootopia -->
+            <button onclick="openTopic('Zootopia', '1zMgSaxxOSPLvY-Bh9597_2f_CTL3ddnVEbcho7mgFQY')" class="bg-white p-4 rounded-2xl shadow-xs border border-emerald-100 flex items-center justify-between hover:border-emerald-400 hover:shadow-sm transition text-left group">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-emerald-100 flex items-center justify-center text-emerald-700 font-extrabold text-lg">
+                        🦊
+                    </div>
+                    <div>
+                        <h3 class="text-sm font-bold text-emerald-950 group-hover:text-emerald-700">Zootopia</h3>
+                        <p class="text-[11px] text-emerald-600">Luyện nghe qua trích đoạn phim Zootopia</p>
+                    </div>
                 </div>
-            </div>
-        </div>
-
-        <div class="bg-white p-4 rounded-2xl shadow-xs border border-emerald-100 flex flex-col gap-3">
-            <div id="playerContainer" class="video-container bg-emerald-950 shadow-inner">
-                <div id="player"></div>
-            </div>
-
-            <div class="flex items-center justify-between gap-2 bg-emerald-50/60 p-2.5 rounded-xl border border-emerald-100">
-                <button id="loopBtn" onclick="toggleLoopSegment()" class="flex-1 py-2 px-3 text-xs font-bold rounded-lg text-white shadow-xs transition" style="background-color: #047857;">
-                    🛑 Tắt Lặp Câu (Đang Bật)
-                </button>
-                <button onclick="nextSegment()" class="py-2 px-3 text-xs font-bold rounded-lg text-white hover:bg-emerald-600 shadow-xs transition" style="background-color: #10b981;">
-                    ⏭ Câu tiếp
-                </button>
-            </div>
-            <div id="statusNotice" class="text-center text-[11px] font-semibold text-emerald-700">💡 Đang tải phụ đề tự động từ YouTube...</div>
-        </div>
-
-        <div class="bg-white p-4 rounded-2xl shadow-xs border border-emerald-100 flex-1 flex flex-col">
-            <div class="flex justify-between items-center mb-2">
-                <label class="text-xs font-bold uppercase tracking-wider text-emerald-800">Gõ lại những gì bạn nghe được:</label>
-                <button onclick="toggleAnswerVisibility()" class="text-xs text-emerald-600 font-bold hover:underline">Xem đáp án & Dịch</button>
-            </div>
-            
-            <textarea id="userInput" rows="3" class="w-full p-3 border border-emerald-200 rounded-xl text-sm bg-emerald-50/20 focus:outline-none focus:border-emerald-500 resize-none text-emerald-950" placeholder="Nhập từ vựng nghe được vào đây..."></textarea>
-            
-            <button onclick="checkResult()" class="mt-3 text-white py-2.5 rounded-xl text-sm font-extrabold shadow-md hover:bg-emerald-700 transition" style="background-color: #059669;">
-                Done (Kiểm Tra & Nộp bài) ✓
+                <span class="text-emerald-400 font-bold text-sm">▶</span>
             </button>
+
+            <!-- Bạn có thể thêm chủ đề mới tại đây bằng cách nhân bản nút bấm trên -->
         </div>
 
-        <div id="resultContainer" class="bg-white p-4 rounded-2xl shadow-xs border border-emerald-200 hidden flex flex-col gap-3">
-            <div>
-                <div class="flex justify-between items-center mb-1">
-                    <h3 class="text-xs font-bold uppercase tracking-wider" style="color: #047857;">ĐÁP ÁN YOUTUBE TRANSCRIPT CHÍNH XÁC:</h3>
-                    <span class="text-[10px] bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full font-bold">📜 Auto-Fetched</span>
+        <!-- ================= TRANG 2: DANH SÁCH VIDEO TRONG CHỦ ĐỀ ================= -->
+        <div id="viewVideos" class="hidden flex flex-col gap-3">
+            <h2 id="topicTitleHeader" class="text-xs font-bold uppercase tracking-wider text-emerald-800 mb-1">Danh sách Video:</h2>
+            <div id="loadingNotice" class="text-center py-8 text-xs font-semibold text-emerald-600">
+                ⏳ Đang tải danh sách video từ Google Sheets...
+            </div>
+            <div id="videoListContainer" class="flex flex-col gap-2.5">
+                <!-- Danh sách video lấy từ Cột B sẽ đổ vào đây -->
+            </div>
+        </div>
+
+        <!-- ================= TRANG 3: MÀN HÌNH LUYỆN NGHE & CHÉP CHÍNH TẢ ================= -->
+        <div id="viewPractice" class="hidden flex-1 flex flex-col gap-4">
+            
+            <!-- YouTube Player -->
+            <div class="bg-white p-4 rounded-2xl shadow-xs border border-emerald-100 flex flex-col gap-3">
+                <h3 id="currentLessonTitle" class="text-xs font-bold text-emerald-800 truncate">Tên Video</h3>
+                
+                <div id="playerContainer" class="video-container bg-emerald-950 shadow-inner">
+                    <div id="player"></div>
                 </div>
-                <div id="diffOutput" class="text-sm leading-relaxed font-mono p-3 rounded-xl border border-emerald-100" style="background-color: #ecfdf5;"></div>
-                <div id="scoreText" class="text-xs font-bold mt-1 text-emerald-700"></div>
+
+                <!-- Điều khiển lặp câu -->
+                <div class="flex items-center justify-between gap-2 bg-emerald-50/60 p-2.5 rounded-xl border border-emerald-100">
+                    <button id="loopBtn" onclick="toggleLoopSegment()" class="flex-1 py-2 px-3 text-xs font-bold rounded-lg text-white shadow-xs transition" style="background-color: #047857;">
+                        🛑 Tắt Lặp Câu (Đang Bật)
+                    </button>
+                    <button onclick="nextSegment()" class="py-2 px-3 text-xs font-bold rounded-lg text-white hover:bg-emerald-600 shadow-xs transition" style="background-color: #10b981;">
+                        ⏭ Câu tiếp
+                    </button>
+                </div>
+                <div id="statusNotice" class="text-center text-[11px] font-semibold text-emerald-700">💡 Đang lặp đoạn hiện tại: Gõ đúng 100% để qua câu tiếp theo!</div>
             </div>
 
-            <div class="border-t border-emerald-100 pt-2">
-                <h3 class="text-xs font-bold uppercase tracking-wider mb-1 text-emerald-600">Dịch nghĩa (Google Translate):</h3>
-                <div id="translateOutput" class="text-xs italic text-emerald-800 p-2.5 rounded-xl bg-emerald-50/50 border border-emerald-100">
-                    Đang nạp bản dịch...
+            <!-- Khung Nhập Liệu -->
+            <div class="bg-white p-4 rounded-2xl shadow-xs border border-emerald-100 flex-1 flex flex-col">
+                <div class="flex justify-between items-center mb-2">
+                    <label class="text-xs font-bold uppercase tracking-wider text-emerald-800">
+                        Đoạn <span id="currentSegmentIdx">1</span>/<span id="totalSegmentsIdx">1</span> - Gõ những gì bạn nghe được:
+                    </label>
+                    <button onclick="toggleAnswerVisibility()" class="text-xs text-emerald-600 font-bold hover:underline">Xem đáp án & Dịch</button>
+                </div>
+                
+                <textarea id="userInput" rows="3" class="w-full p-3 border border-emerald-200 rounded-xl text-sm bg-emerald-50/20 focus:outline-none focus:border-emerald-500 resize-none text-emerald-950" placeholder="Nhập câu tiếng Anh nghe được vào đây (không cần gõ dấu câu hay gạch đầu dòng)..."></textarea>
+                
+                <button onclick="checkResult()" class="mt-3 text-white py-2.5 rounded-xl text-sm font-extrabold shadow-md hover:bg-emerald-700 transition" style="background-color: #059669;">
+                    Done (Kiểm Tra & Nộp bài) ✓
+                </button>
+            </div>
+
+            <!-- Khung Đáp Án Đối Chiếu & Dịch -->
+            <div id="resultContainer" class="bg-white p-4 rounded-2xl shadow-xs border border-emerald-200 hidden flex flex-col gap-3">
+                <div>
+                    <div class="flex justify-between items-center mb-1">
+                        <h3 class="text-xs font-bold uppercase tracking-wider" style="color: #047857;">ĐÁP ÁN TRANSCRIPT CHUẨN:</h3>
+                        <span class="text-[10px] bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full font-bold">📊 Chấm tự động</span>
+                    </div>
+                    <div id="diffOutput" class="text-sm leading-relaxed font-mono p-3 rounded-xl border border-emerald-100" style="background-color: #ecfdf5;"></div>
+                    <div id="scoreText" class="text-xs font-bold mt-1 text-emerald-700"></div>
+                </div>
+
+                <div class="border-t border-emerald-100 pt-2">
+                    <h3 class="text-xs font-bold uppercase tracking-wider mb-1 text-emerald-600">Dịch nghĩa (Google Translate):</h3>
+                    <div id="translateOutput" class="text-xs italic text-emerald-800 p-2.5 rounded-xl bg-emerald-50/50 border border-emerald-100">
+                        Đang nạp bản dịch...
+                    </div>
                 </div>
             </div>
+
         </div>
 
     </main>
 
+    <!-- Footer -->
     <footer class="text-center py-4 text-xs text-emerald-600/70 font-medium">
-        BeListen App • Green Edition ✨
+        BeListen App • Theme Edition ✨
     </footer>
 
+    <!-- YouTube IFrame API -->
     <script src="https://www.youtube.com/iframe_api"></script>
     <script>
+        let currentView = 1; // 1: Topics, 2: Videos, 3: Practice
+        let currentSheetData = [];
+        let activeVideoData = null;
+        let transcriptSegments = [];
+        let currentSegmentIndex = 0;
+
         let player;
-        let currentVideoId = "5qap5aO4i9A";
         let isLooping = true;
-        let segmentDuration = 6;
+        let segmentDuration = 7;
         let segmentStart = 0;
-        let currentTranscriptText = "welcome to daily english dictation practice";
 
         function onYouTubeIframeAPIReady() {
-            player = new YT.Player('player', {
-                videoId: currentVideoId,
-                playerVars: { 'playsinline': 1 },
-                events: { 'onReady': onPlayerReady }
+            // Player ready callback
+        }
+
+        // Quản lý điều hướng màn hình
+        function setView(viewNum) {
+            currentView = viewNum;
+            document.getElementById('viewTopics').classList.toggle('hidden', viewNum !== 1);
+            document.getElementById('viewVideos').classList.toggle('hidden', viewNum !== 2);
+            document.getElementById('viewPractice').classList.toggle('hidden', viewNum !== 3);
+            document.getElementById('backBtn').classList.toggle('hidden', viewNum === 1);
+
+            const subtitle = document.getElementById('headerSubtitle');
+            if (viewNum === 1) subtitle.innerText = "Chọn chủ đề học tập bên dưới";
+            else if (viewNum === 2) subtitle.innerText = "Chọn video luyện nghe";
+            else if (viewNum === 3) subtitle.innerText = "Luyện nghe chép chính tả";
+        }
+
+        function goBack() {
+            if (currentView === 3) setView(2);
+            else if (currentView === 2) setView(1);
+        }
+
+        // Mở chủ đề & đọc dữ liệu CSV từ Google Sheet
+        async function openTopic(topicName, sheetId) {
+            setView(2);
+            document.getElementById('topicTitleHeader').innerText = `Danh sách Video - ${topicName}:`;
+            document.getElementById('loadingNotice').classList.remove('hidden');
+            document.getElementById('videoListContainer').innerHTML = "";
+
+            const csvUrl = `https://docs.google.com/spreadsheets/d/${sheetId}/export?format=csv`;
+
+            try {
+                const res = await fetch(csvUrl);
+                const csvText = await res.text();
+                parseSheetCSV(csvText);
+            } catch (e) {
+                document.getElementById('loadingNotice').innerText = "⚠️ Không thể tải dữ liệu từ Google Sheet. Hãy kiểm tra lại chế độ Xuất bản lên web!";
+            }
+        }
+
+        // Phân tích file CSV (Cột A: Video_ID, Cột B: Title, Cột C: Transcript)
+        function parseSheetCSV(csvText) {
+            const lines = csvText.split('\n');
+            currentSheetData = [];
+
+            for (let i = 1; i < lines.length; i++) {
+                if (!lines[i].trim()) continue;
+                
+                // Tách cột CSV đơn giản
+                const cols = lines[i].split(/,(?=(?:[^\"]*\"[^\"]*\")*[^\"]*$)/);
+                if (cols.length >= 3) {
+                    let videoId = cols[0].replace(/"/g, '').trim();
+                    let title = cols[1].replace(/"/g, '').trim();
+                    let rawTranscript = cols[2].replace(/"/g, '').trim();
+
+                    if (videoId && title) {
+                        currentSheetData.push({ videoId, title, rawTranscript });
+                    }
+                }
+            }
+
+            renderVideoList();
+        }
+
+        // Hiển thị danh sách các Video thuộc cột B lên Trang 2
+        function renderVideoList() {
+            const container = document.getElementById('videoListContainer');
+            const loadingNotice = document.getElementById('loadingNotice');
+            loadingNotice.classList.add('hidden');
+            container.innerHTML = "";
+
+            if (currentSheetData.length === 0) {
+                container.innerHTML = `<div class="text-center py-4 text-xs text-emerald-600">Chưa có bài học nào trong trang tính này.</div>`;
+                return;
+            }
+
+            currentSheetData.forEach((item, index) => {
+                const btn = document.createElement('button');
+                btn.className = "bg-white p-3.5 rounded-xl border border-emerald-100 flex items-center justify-between text-left hover:border-emerald-400 hover:bg-emerald-50/30 transition shadow-xs";
+                btn.innerHTML = `
+                    <div class="flex items-center gap-3">
+                        <span class="w-6 h-6 rounded-full bg-emerald-100 text-emerald-800 text-xs font-bold flex items-center justify-center">${index + 1}</span>
+                        <span class="text-xs font-bold text-emerald-950">${item.title}</span>
+                    </div>
+                    <span class="text-xs text-emerald-600 font-bold">Học ngay ➔</span>
+                `;
+                btn.onclick = () => startPractice(item);
+                container.appendChild(btn);
             });
         }
 
-        function onPlayerReady(event) {
-            fetchRealTranscript(currentVideoId);
-            startLoopTracker();
+        // Bắt đầu màn hình luyện tập với Video được chọn
+        function startPractice(videoItem) {
+            activeVideoData = videoItem;
+            setView(3);
+
+            document.getElementById('currentLessonTitle').innerText = videoItem.title;
+            
+            // Xử lý tách các câu lặp theo gạch đầu dòng (-) hoặc xuống dòng trong Cột C
+            parseTranscriptSegments(videoItem.rawTranscript);
+            currentSegmentIndex = 0;
+
+            loadYouTubePlayer(videoItem.videoId);
+            updateSegmentUI();
         }
 
-        function changeLesson() {
-            currentVideoId = document.getElementById('lessonSelect').value;
-            loadVideoById(currentVideoId);
-        }
+        // Tách câu lặp bằng ký tự gạch đầu dòng (-) hoặc xuống dòng
+        function parseTranscriptSegments(rawText) {
+            // Tách theo dấu gạch đầu dòng -, • hoặc xuống dòng \n
+            const lines = rawText.split(/[-•\n]+/);
+            transcriptSegments = lines
+                .map(line => line.trim())
+                .filter(line => line.length > 0);
 
-        async function loadCustomVideo() {
-            let rawUrl = document.getElementById('customUrlInput').value.trim();
-            let videoId = "";
-            if (rawUrl.includes("youtu.be/")) {
-                videoId = rawUrl.split("youtu.be/")[1].split("?")[0];
-            } else if (rawUrl.includes("watch?v=")) {
-                videoId = rawUrl.split("watch?v=")[1].split("&")[0];
-            } else {
-                videoId = rawUrl;
-            }
-
-            if (videoId) {
-                currentVideoId = videoId;
-                loadVideoById(videoId);
-            } else {
-                alert("Link YouTube chưa đúng định dạng!");
-            }
-        }
-
-        function loadVideoById(id) {
-            if (player && player.loadVideoById) {
-                player.loadVideoById(id);
-                document.getElementById('userInput').value = "";
-                document.getElementById('resultContainer').classList.add('hidden');
-                segmentStart = 0;
-                isLooping = true;
-                fetchRealTranscript(id);
+            if (transcriptSegments.length === 0) {
+                transcriptSegments = [rawText];
             }
         }
 
-        // Hàm bóc tách Transcript trực tiếp từ Youtube API công khai
-        async function fetchRealTranscript(videoId) {
-            const notice = document.getElementById('statusNotice');
-            notice.innerText = "⏳ Đang trích xuất Subtitle chuẩn từ YouTube...";
-            try {
-                const res = await fetch(`https://pipedapi.kavin.rocks/streams/${videoId}`);
-                const data = await res.json();
-                if (data.subtitles && data.subtitles.length > 0) {
-                    let subTrack = data.subtitles.find(s => s.lang === 'en' || s.code === 'en') || data.subtitles[0];
-                    const subRes = await fetch(subTrack.url);
-                    const subText = await subRes.text();
-                    
-                    // Xử lý làm sạch thẻ xml/vtt để lấy thuần text
-                    let parser = new DOMParser();
-                    let xmlDoc = parser.parseFromString(subText, "text/xml");
-                    let textNodes = xmlDoc.getElementsByTagName("text");
-                    let fullText = "";
-                    for(let i=0; i < Math.min(textNodes.length, 5); i++) {
-                        fullText += textNodes[i].textContent + " ";
+        function updateSegmentUI() {
+            document.getElementById('currentSegmentIdx').innerText = currentSegmentIndex + 1;
+            document.getElementById('totalSegmentsIdx').innerText = transcriptSegments.length;
+            document.getElementById('userInput').value = "";
+            document.getElementById('resultContainer').classList.add('hidden');
+            document.getElementById('statusNotice').innerText = "💡 Đang lặp câu hiện tại: Gõ đúng 100% để qua câu tiếp theo!";
+        }
+
+        function loadYouTubePlayer(videoId) {
+            if (!player) {
+                player = new YT.Player('player', {
+                    videoId: videoId,
+                    playerVars: { 'playsinline': 1 },
+                    events: {
+                        'onReady': () => { startLoopTracker(); }
                     }
-                    if (fullText.trim()) {
-                        currentTranscriptText = fullText.trim().replace(/&quot;/g, '"').replace(/&#39;/g, "'");
-                        notice.innerText = "✅ Đã tải xong Transcript thật từ video!";
-                        return;
-                    }
-                }
-            } catch(e) {
-                console.log("Fallback to secondary caption source");
+                });
+            } else {
+                player.loadVideoById(videoId);
             }
-            currentTranscriptText = "learning english with youtube video audio and listening exercises";
-            notice.innerText = "💡 Đang khóa lặp: Gõ đúng 100% mới được chuyển câu!";
+            segmentStart = 0;
+            isLooping = true;
         }
 
         function toggleLoopSegment() {
@@ -190,7 +308,7 @@
             if (isLooping) {
                 btn.innerText = "🛑 Tắt Lặp Câu (Đang Bật)";
                 btn.style.backgroundColor = "#047857";
-                notice.innerText = "💡 Đang khóa lặp: Gõ đúng 100% mới được chuyển câu!";
+                notice.innerText = "💡 Đang khóa lặp câu hiện tại!";
                 if (player) segmentStart = player.getCurrentTime();
             } else {
                 btn.innerText = "🔁 Bật Lặp Câu (Auto)";
@@ -200,17 +318,22 @@
         }
 
         function nextSegment() {
+            if (currentSegmentIndex < transcriptSegments.length - 1) {
+                currentSegmentIndex++;
+            } else {
+                currentSegmentIndex = 0; // Quay lại câu 1 nếu hết bài
+            }
+            
+            updateSegmentUI();
+
             if (player) {
                 segmentStart = player.getCurrentTime();
                 player.seekTo(segmentStart, true);
                 player.playVideo();
-                document.getElementById('userInput').value = "";
-                document.getElementById('resultContainer').classList.add('hidden');
                 isLooping = true;
                 const btn = document.getElementById('loopBtn');
                 btn.innerText = "🛑 Tắt Lặp Câu (Đang Bật)";
                 btn.style.backgroundColor = "#047857";
-                document.getElementById('statusNotice').innerText = "🎉 Sang đoạn tiếp theo, tiếp tục luyện tập!";
             }
         }
 
@@ -223,6 +346,16 @@
                     }
                 }
             }, 400);
+        }
+
+        // Hàm chuẩn hóa chuỗi: Chuyển về chữ thường, xóa hoàn toàn dấu câu & gạch đầu dòng
+        function cleanText(text) {
+            return text
+                .toLowerCase()
+                .replace(/[-•]/g, "") // Bỏ dấu gạch đầu dòng
+                .replace(/[.,/#!$%^&*;:{}=\-_`~()?"']/g, "") // Bỏ toàn bộ dấu câu
+                .replace(/\s+/g, " ") // Chuẩn hóa khoảng trắng
+                .trim();
         }
 
         async function translateText(text) {
@@ -255,11 +388,12 @@
             const translateOutput = document.getElementById('translateOutput');
             const notice = document.getElementById('statusNotice');
 
-            let targetText = currentTranscriptText.toLowerCase().replace(/[.,/#!$%^&*;:{}=\-_`~()]/g,"");
-            let userText = document.getElementById('userInput').value.toLowerCase().replace(/[.,/#!$%^&*;:{}=\-_`~()]/g,"");
+            let currentRawSegment = transcriptSegments[currentSegmentIndex] || "";
+            let targetClean = cleanText(currentRawSegment);
+            let userClean = cleanText(document.getElementById('userInput').value);
 
-            const originalWords = targetText.split(/\s+/).filter(w => w.length > 0);
-            const userWords = userText.split(/\s+/).filter(w => w.length > 0);
+            const originalWords = targetClean.split(' ').filter(w => w.length > 0);
+            const userWords = userClean.split(' ').filter(w => w.length > 0);
 
             let html = "";
             let matchCount = 0;
@@ -279,13 +413,13 @@
                 html += `<span class="incorrect">${userWords[i]}</span> `;
             }
 
-            diffOutput.innerHTML = html;
+            diffOutput.innerHTML = html || "<span class='text-slate-400'>Chưa có dữ liệu</span>";
             let accuracy = originalWords.length > 0 ? Math.round((matchCount / originalWords.length) * 100) : 0;
             scoreText.innerText = `Độ chính xác: ${accuracy}% (Từ đúng: ${matchCount}/${originalWords.length})`;
 
             container.classList.remove('hidden');
-            translateOutput.innerText = "Đang dịch tự động qua Google Translate...";
-            let translated = await translateText(currentTranscriptText);
+            translateOutput.innerText = "Đang dịch tự động câu hiện tại...";
+            let translated = await translateText(currentRawSegment);
             translateOutput.innerText = translated;
 
             if (isSubmitting) {
@@ -294,13 +428,13 @@
                     const btn = document.getElementById('loopBtn');
                     btn.innerText = "🔁 Bật Lặp Câu (Auto)";
                     btn.style.backgroundColor = "#059669";
-                    notice.innerHTML = "✅ <span class='text-emerald-700 font-bold'>Chính xác 100%!</span> Đã mở khóa. Bấm <span class='text-emerald-600 font-bold'>[⏭ Câu tiếp]</span>!";
+                    notice.innerHTML = "✅ <span class='text-emerald-700 font-bold'>Chính xác 100%!</span> Mở khóa thành công. Bấm <span class='text-emerald-600 font-bold'>[⏭ Câu tiếp]</span> để qua câu tiếp theo!";
                 } else {
                     isLooping = true;
                     const btn = document.getElementById('loopBtn');
                     btn.innerText = "🛑 Tắt Lặp Câu (Đang Bật)";
                     btn.style.backgroundColor = "#047857";
-                    notice.innerHTML = "❌ <span class='text-red-600 font-bold'>Chưa chính xác (" + accuracy + "%).</span> Vẫn tiếp tục lặp lại để gõ lại!";
+                    notice.innerHTML = "❌ <span class='text-red-600 font-bold'>Chưa chính xác (" + accuracy + "%).</span> Vẫn tiếp tục lặp lại câu này để bạn gõ lại!";
                 }
             }
         }
