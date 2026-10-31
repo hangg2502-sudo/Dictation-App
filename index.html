@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BeListen - Perfect Timestamp Edition</title>
+    <title>BeListen - Clean & Sync Transcript</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
@@ -141,7 +141,7 @@
 
     <!-- Footer -->
     <footer class="text-center py-4 text-xs text-emerald-600/70 font-medium">
-        BeListen App • Perfect Timestamp Edition ✨
+        BeListen App • Clean & Sync Edition ✨
     </footer>
 
     <!-- YouTube IFrame API -->
@@ -207,62 +207,38 @@
             return 0;
         }
 
-        // Đọc chuẩn định dạng trong Sheet: [phút:giây - phút:giây]- Nội dung câu
+        // Đọc dữ liệu từ Google Sheet, đảm bảo bóc tách sạch sẽ từng dòng không bị lặp
         function parseTranscriptFromSheet(csvText) {
-            const lines = csvText.split('\n');
+            const rawLines = csvText.split(/\r?\n/);
             transcriptSegments = [];
 
-            for (let i = 1; i < lines.length; i++) {
-                if (!lines[i].trim()) continue;
-                let row = parseCSVLine(lines[i]);
+            rawLines.forEach(line => {
+                if (!line.trim()) return;
                 
-                for (let cell of row) {
-                    let cleanCell = cell ? cell.replace(/^["']|["']$/g, '').trim() : "";
-                    if (!cleanCell || cleanCell.includes("http") || cleanCell.includes("youtu")) continue;
+                // Xử lý từng dòng được ngăn cách bởi dấu xuống dòng hoặc phân tách CSV
+                let match = line.match(/\[\s*([\d:]+)\s*-\s*([\d:]+)\s*\]\s*-?\s*(.*)/);
+                if (match) {
+                    let startTime = parseTimeToSeconds(match[1]);
+                    let endTime = parseTimeToSeconds(match[2]);
+                    let text = match[3].replace(/^["']|["']$/g, '').trim();
 
-                    // Regex quét chính xác cấu trúc [mm:ss - mm:ss]- (hỗ trợ linh hoạt khoảng trắng)
-                    let timeMatch = cleanCell.match(/\[\s*([\d:]+)\s*-\s*([\d:]+)\s*\]\s*-?\s*(.*)/);
-                    
-                    if (timeMatch) {
-                        let startTime = parseTimeToSeconds(timeMatch[1]);
-                        let endTime = parseTimeToSeconds(timeMatch[2]);
-                        let text = timeMatch[3].trim();
-
-                        if (text.length > 0) {
-                            transcriptSegments.push({
-                                startTime: startTime,
-                                endTime: endTime > startTime ? endTime : startTime + 5,
-                                text: text
-                            });
-                        }
+                    if (text.length > 0) {
+                        transcriptSegments.push({
+                            startTime: startTime,
+                            endTime: endTime > startTime ? endTime : startTime + 5,
+                            text: text
+                        });
                     }
                 }
-            }
+            });
 
+            // Fallback nếu không quét được dòng nào
             if (transcriptSegments.length === 0) {
                 transcriptSegments = [{ startTime: 0, endTime: 6, text: "welcome to practice listening and dictation" }];
             }
 
             currentSegmentIndex = 0;
             updateSegmentUI();
-        }
-
-        function parseCSVLine(text) {
-            let row = [];
-            let inQuotes = false;
-            let currentVal = '';
-            for (let char of text) {
-                if (char === '"') {
-                    inQuotes = !inQuotes;
-                } else if (char === ',' && !inQuotes) {
-                    row.push(currentVal.trim());
-                    currentVal = '';
-                } else {
-                    currentVal += char;
-                }
-            }
-            row.push(currentVal.trim());
-            return row;
         }
 
         function updateSegmentUI() {
