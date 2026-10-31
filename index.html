@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BeListen - Fixed Loop Edition</title>
+    <title>BeListen - Fixed View Switcher</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
@@ -24,6 +24,7 @@
             left: 0;
             width: 100%;
             height: 100%;
+            pointer-events: none; /* Khóa tương tác trực tiếp trên video an toàn */
         }
     </style>
 </head>
@@ -93,7 +94,7 @@
             <div class="bg-white p-4 rounded-2xl shadow-xs border border-emerald-100 flex flex-col gap-3">
                 <h3 id="currentLessonTitle" class="text-xs font-bold text-emerald-800 truncate">Tên Video</h3>
                 
-                <div class="video-container bg-emerald-950 shadow-inner">
+                <div class="video-container bg-emerald-950 shadow-inner relative">
                     <div id="player"></div>
                 </div>
 
@@ -200,7 +201,7 @@
                     </button>
                 `;
             } else if (topicName === 'Harry Potter') {
-                header.innerText = "Nón phân loại - Harry Potter 1";
+                header.innerText = "Danh sách Video - Harry Potter:";
                 container.innerHTML = `
                     <button onclick="startPractice('Nón phân loại - Harry Potter 1', 'z4K2F_OALPQ', 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQTB4HbLMtGm5lxt1CacI1wXGaAyEyhosNtoYJ7KxT6i3E4AYSqWEkZ7SkcMUtprZC1gEyYxS1GYP3j/pub?gid=0&single=true&output=csv')" class="bg-white p-3.5 rounded-xl border border-emerald-100 flex items-center justify-between text-left hover:border-emerald-400 hover:bg-emerald-50/30 transition shadow-xs w-full">
                         <div class="flex items-center gap-3">
@@ -313,7 +314,17 @@
             if (!player) {
                 player = new YT.Player('player', {
                     videoId: videoId,
-                    playerVars: { 'playsinline': 1 },
+                    playerVars: { 
+                        'playsinline': 1,
+                        'controls': 0,
+                        'disablekb': 1,
+                        'fs': 0,
+                        'modestbranding': 1,
+                        'iv_load_policy': 3,
+                        'cc_load_policy': 0,
+                        'rel': 0,
+                        'autoplay': 1
+                    },
                     events: {
                         'onReady': () => { 
                             startLoopTracker(); 
@@ -382,12 +393,11 @@
                         }
                     }
                     
-                    // Khắc phục lỗi lặp 1 giây bằng cách kiểm soát chặt mốc kết thúc và thời gian đệm
                     if (isLooping && segmentEnd > segmentStart && currentTime >= segmentEnd) {
                         player.seekTo(segmentStart, true);
                     }
                 }
-            }, 150); // Tăng tần số quét (150ms) để bắt trọn mốc thời gian chính xác hơn
+            }, 150);
         }
 
         function handleTextareaKey(event) {
