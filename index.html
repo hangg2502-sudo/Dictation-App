@@ -49,21 +49,7 @@
         <div id="viewTopics" class="flex flex-col gap-3">
             <h2 class="text-xs font-bold uppercase tracking-wider text-emerald-800 mb-1">Chủ đề bài học:</h2>
             
-            <!-- Chủ đề 1: Zootopia -->
-            <button onclick="openTopic('Zootopia')" class="bg-white p-4 rounded-2xl shadow-xs border border-emerald-100 flex items-center justify-between hover:border-emerald-400 hover:shadow-sm transition text-left group">
-                <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 rounded-xl bg-emerald-100 flex items-center justify-center text-emerald-700 font-extrabold text-lg">
-                        🦊
-                    </div>
-                    <div>
-                        <h3 class="text-sm font-bold text-emerald-950 group-hover:text-emerald-700">Zootopia</h3>
-                        <p class="text-[11px] text-emerald-600">Luyện nghe qua trích đoạn phim Zootopia</p>
-                    </div>
-                </div>
-                <span class="text-emerald-400 font-bold text-sm">▶</span>
-            </button>
-
-            <!-- Chủ đề 2: Harry Potter -->
+            <!-- Chủ đề: Harry Potter -->
             <button onclick="openTopic('Harry Potter')" class="bg-white p-4 rounded-2xl shadow-xs border border-emerald-100 flex items-center justify-between hover:border-emerald-400 hover:shadow-sm transition text-left group">
                 <div class="flex items-center gap-3">
                     <div class="w-10 h-10 rounded-xl bg-amber-100 flex items-center justify-center text-amber-700 font-extrabold text-lg">
@@ -77,7 +63,7 @@
                 <span class="text-emerald-400 font-bold text-sm">▶</span>
             </button>
 
-            <!-- Chủ đề 3: Moana -->
+            <!-- Chủ đề: Moana -->
             <button onclick="openTopic('Moana')" class="bg-white p-4 rounded-2xl shadow-xs border border-emerald-100 flex items-center justify-between hover:border-emerald-400 hover:shadow-sm transition text-left group">
                 <div class="flex items-center gap-3">
                     <div class="w-10 h-10 rounded-xl bg-cyan-100 flex items-center justify-center text-cyan-700 font-extrabold text-lg">
@@ -173,21 +159,8 @@
     <script>
         // =========================================================================
         // 🗂️ KHO DỮ LIỆU BÀI HỌC (MODULAR LESSON DATABASE)
-        // Các chủ đề lớn và danh sách video con được phân định rõ ràng tại đây!
         // =========================================================================
         const appDatabase = {
-            "Zootopia": {
-                title: "Danh sách Video - Zootopia:",
-                badgeBg: "bg-emerald-100 text-emerald-800",
-                videos: [
-                    {
-                        id: 1,
-                        name: "Zootopia - Judy's Hustle (Tax Evasion)",
-                        videoId: "J9MKjQ6-UBU",
-                        csvUrl: "https://docs.google.com/spreadsheets/d/e/2PACX-1vQU9tUvOG7EkQzPg5kmFttgYc8v4PoHY_ly0BWxnNpCrRbP4A_CLaK21UTbRYTwVVVbhuqNsALLfQUA/pub?output=csv"
-                    }
-                ]
-            },
             "Harry Potter": {
                 title: "Danh sách Video - Harry Potter:",
                 badgeBg: "bg-amber-100 text-amber-800",
