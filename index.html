@@ -69,7 +69,7 @@
                 ⏳ Đang tải danh sách video từ Google Sheets...
             </div>
             <div id="videoListContainer" class="flex flex-col gap-2.5">
-                <!-- Danh sách tên video từ Cột B hiển thị tại đây -->
+                <!-- Tên video từ Cột B sẽ hiển thị tại đây -->
             </div>
         </div>
 
@@ -80,7 +80,6 @@
             <div class="bg-white p-4 rounded-2xl shadow-xs border border-emerald-100 flex flex-col gap-3">
                 <h3 id="currentLessonTitle" class="text-xs font-bold text-emerald-800 truncate">Tên Video</h3>
                 
-                <!-- Khung chứa YouTube Player tránh lỗi load -->
                 <div class="video-container bg-emerald-950 shadow-inner">
                     <div id="player"></div>
                 </div>
@@ -155,9 +154,7 @@
         let segmentDuration = 7;
         let segmentStart = 0;
 
-        function onYouTubeIframeAPIReady() {
-            // API sẵn sàng
-        }
+        function onYouTubeIframeAPIReady() {}
 
         function setView(viewNum) {
             currentView = viewNum;
@@ -192,6 +189,7 @@
             }
         }
 
+        // Đọc chuẩn cấu trúc: Cột A = Video ID, Cột B = Title, Cột C = Transcript
         function parseSheetCSV(csvText) {
             const lines = csvText.split('\n');
             currentSheetData = [];
@@ -199,11 +197,26 @@
             for (let i = 1; i < lines.length; i++) {
                 if (!lines[i].trim()) continue;
                 
-                const cols = lines[i].split(/,(?=(?:[^\"]*\"[^\"]*\")*[^\"]*$)/);
-                if (cols.length >= 3) {
-                    let videoId = cols[0].replace(/"/g, '').trim();
-                    let title = cols[1].replace(/"/g, '').trim();
-                    let rawTranscript = cols[2].replace(/"/g, '').trim();
+                // Tách chuẩn file CSV đề phòng dấu phẩy trong ngoặc kép
+                let row = [];
+                let inQuotes = false;
+                let currentVal = '';
+                for (let char of lines[i]) {
+                    if (char === '"') {
+                        inQuotes = !inQuotes;
+                    } else if (char === ',' && !inQuotes) {
+                        row.push(currentVal.trim());
+                        currentVal = '';
+                    } else {
+                        currentVal += char;
+                    }
+                }
+                row.push(currentVal.trim());
+
+                if (row.length >= 3) {
+                    let videoId = row[0].replace(/^["']|["']$/g, '').trim();
+                    let title = row[1].replace(/^["']|["']$/g, '').trim();
+                    let rawTranscript = row[2].replace(/^["']|["']$/g, '').trim();
 
                     if (videoId && title) {
                         currentSheetData.push({ videoId, title, rawTranscript });
@@ -221,14 +234,14 @@
             container.innerHTML = "";
 
             if (currentSheetData.length === 0) {
-                container.innerHTML = `<div class="text-center py-4 text-xs text-emerald-600">Chưa có bài học nào trong Google Sheet này.</div>`;
+                container.innerHTML = `<div class="text-center py-4 text-xs text-emerald-600">Chưa có bài học nào trong Google Sheet này hoặc sai định dạng cột.</div>`;
                 return;
             }
 
             currentSheetData.forEach((item, index) => {
                 const btn = document.createElement('button');
                 btn.className = "bg-white p-3.5 rounded-xl border border-emerald-100 flex items-center justify-between text-left hover:border-emerald-400 hover:bg-emerald-50/30 transition shadow-xs";
-                // Hiển thị tên từ cột B (item.title)
+                // Hiển thị chính xác tên từ Cột B (item.title)
                 btn.innerHTML = `
                     <div class="flex items-center gap-3">
                         <span class="w-6 h-6 rounded-full bg-emerald-100 text-emerald-800 text-xs font-bold flex items-center justify-center">${index + 1}</span>
